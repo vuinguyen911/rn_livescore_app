@@ -287,7 +287,18 @@ export default function HomeScreen({ navigation }: Props) {
             league.matches.map((match) => {
               const badge = statusBadgeStyle(match.status, t.common.upcoming);
               return (
-                <View key={match.id} style={styles.matchRow}>
+                <Pressable
+                  key={match.id}
+                  style={styles.matchRow}
+                  onPress={() =>
+                    navigation.navigate('MatchDetail', {
+                      eventId: match.id,
+                      league: match.league,
+                      homeName: match.homeName,
+                      awayName: match.awayName,
+                    })
+                  }
+                >
                   <View style={[styles.badge, { backgroundColor: badge.backgroundColor }]}>
                     <Text style={[styles.badgeText, { color: badge.color }]}>{match.minute || badge.label}</Text>
                   </View>
@@ -296,7 +307,7 @@ export default function HomeScreen({ navigation }: Props) {
                     <View style={styles.teamLine}>
                       <Pressable
                         onPress={() =>
-                          navigation.navigate('TeamSchedule', {
+                          navigation.navigate('TeamPlayers', {
                             teamId: match.homeTeamId,
                             teamName: match.homeName,
                             league: match.league,
@@ -327,7 +338,7 @@ export default function HomeScreen({ navigation }: Props) {
                     <View style={styles.teamLine}>
                       <Pressable
                         onPress={() =>
-                          navigation.navigate('TeamSchedule', {
+                          navigation.navigate('TeamPlayers', {
                             teamId: match.awayTeamId,
                             teamName: match.awayName,
                             league: match.league,
@@ -363,21 +374,8 @@ export default function HomeScreen({ navigation }: Props) {
                   <View style={styles.scoreCol}>
                     <Text style={styles.score}>{match.homeScore}</Text>
                     <Text style={styles.score}>{match.awayScore}</Text>
-                    <Pressable
-                      style={styles.detailBtn}
-                      onPress={() =>
-                        navigation.navigate('MatchDetail', {
-                          eventId: match.id,
-                          league: match.league,
-                          homeName: match.homeName,
-                          awayName: match.awayName,
-                        })
-                      }
-                    >
-                      <Text style={styles.detailBtnText}>{t.home.openMatchDetail}</Text>
-                    </Pressable>
                   </View>
-                </View>
+                </Pressable>
               );
             })
           )}
@@ -646,7 +644,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   scoreCol: {
-    minWidth: 86,
+    minWidth: 24,
     alignItems: 'flex-end',
     gap: 3,
   },
@@ -655,17 +653,5 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0F172A',
     lineHeight: 22,
-  },
-  detailBtn: {
-    marginTop: 6,
-    backgroundColor: '#1D4ED8',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  detailBtnText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
   },
 });

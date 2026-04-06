@@ -6,6 +6,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import MatchDetailScreen from './src/screens/MatchDetailScreen';
 import TeamScheduleScreen from './src/screens/TeamScheduleScreen';
 import PlayerDetailScreen from './src/screens/PlayerDetailScreen';
+import TeamPlayersScreen from './src/screens/TeamPlayersScreen';
 import { I18nProvider, useI18n } from './src/i18n';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
@@ -20,6 +21,11 @@ export type RootStackParamList = {
     awayName: string;
   };
   TeamSchedule: {
+    teamId: string;
+    teamName: string;
+    league: string;
+  };
+  TeamPlayers: {
     teamId: string;
     teamName: string;
     league: string;
@@ -112,6 +118,16 @@ const AppNavigator = () => {
           component={TeamScheduleScreen}
           options={{
             title: t.team.scheduleTitle,
+            headerStyle: { backgroundColor: '#0F172A' },
+            headerTintColor: '#FFFFFF',
+            headerRight: () => <LanguageSwitch />,
+          }}
+        />
+        <Stack.Screen
+          name="TeamPlayers"
+          component={TeamPlayersScreen}
+          options={{
+            title: t.team.playersTitle,
             headerStyle: { backgroundColor: '#0F172A' },
             headerTintColor: '#FFFFFF',
             headerRight: () => <LanguageSwitch />,

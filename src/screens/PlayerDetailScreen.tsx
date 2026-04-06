@@ -82,7 +82,6 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
         <InfoRow label={t.player.marketValue} value={detail.marketValue} />
         <InfoRow label={t.player.contractUntil} value={detail.contractUntil} />
         <InfoRow label={t.player.salary} value={detail.salary} />
-        <Text style={styles.note}>{t.player.privacyNote}</Text>
       </View>
     </ScrollView>
   );
@@ -160,11 +159,4 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     textAlign: 'right',
   },
-  note: {
-    color: '#64748B',
-    fontSize: 11,
-    lineHeight: 16,
-    marginTop: 2,
-  },
 });
-

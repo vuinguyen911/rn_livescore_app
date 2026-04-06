@@ -1,7 +1,19 @@
 import { LeagueKey, LeagueMatches, MatchItem, MatchStatus } from '../types/livescore';
 import { Locale, translations } from '../i18n/translations';
+import { getFreshCache, readCache, writeCache } from './cache';
 
-const LEAGUES: LeagueKey[] = ['eng.1', 'esp.1', 'ger.1', 'eng.fa', 'eng.league_cup', 'eng.2', 'ita.1', 'fra.1'];
+export const AVAILABLE_LEAGUES: LeagueKey[] = [
+  'uefa.champions',
+  'eng.1',
+  'esp.1',
+  'ger.1',
+  'ita.1',
+  'fra.1',
+  'eng.fa',
+  'eng.league_cup',
+  'eng.2',
+  'uefa.europa',
+];
 
 const formatApiDate = (date: Date): string => {
   const y = date.getFullYear();
@@ -12,6 +24,7 @@ const formatApiDate = (date: Date): string => {
 
 const SCOREBOARD_URL = (league: LeagueKey, date: Date) =>
   `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/scoreboard?dates=${formatApiDate(date)}`;
+const LIVE_SCORE_CACHE_TTL_MS = 2 * 60 * 1000;
 
 const asNumber = (value: unknown): number => {
   const n = Number(value ?? 0);
@@ -70,6 +83,11 @@ const parseEvent = (
 
   const parsedStatus = parseStatus(competition.status, locale);
 
+  const homeTeamObj = (home.team as Record<string, unknown> | undefined) || {};
+  const awayTeamObj = (away.team as Record<string, unknown> | undefined) || {};
+  const homeLogos = (homeTeamObj.logos as Record<string, unknown>[] | undefined) || [];
+  const awayLogos = (awayTeamObj.logos as Record<string, unknown>[] | undefined) || [];
+
   return {
     id: String(event.id || `${league}-${competition.id || Math.random()}`),
     league,
@@ -79,48 +97,67 @@ const parseEvent = (
     statusText: parsedStatus.statusText,
     minute: parsedStatus.minute,
     homeName: String(
-      (home.team as Record<string, unknown> | undefined)?.displayName || (locale === 'vi' ? 'Đội nhà' : 'Home'),
+      homeTeamObj.displayName || (locale === 'vi' ? 'Đội nhà' : 'Home'),
     ),
     awayName: String(
-      (away.team as Record<string, unknown> | undefined)?.displayName || (locale === 'vi' ? 'Đội khách' : 'Away'),
+      awayTeamObj.displayName || (locale === 'vi' ? 'Đội khách' : 'Away'),
     ),
+    homeTeamId: String(homeTeamObj.id || ''),
+    awayTeamId: String(awayTeamObj.id || ''),
+    homeLogo: String(homeTeamObj.logo || homeLogos[0]?.href || ''),
+    awayLogo: String(awayTeamObj.logo || awayLogos[0]?.href || ''),
     homeScore: asNumber(home.score),
     awayScore: asNumber(away.score),
   };
 };
 
-export const fetchTop5LiveScores = async (targetDate: Date, locale: Locale): Promise<LeagueMatches[]> => {
+export const fetchTop5LiveScores = async (
+  targetDate: Date,
+  locale: Locale,
+  leagues: LeagueKey[],
+): Promise<LeagueMatches[]> => {
   const t = translations[locale];
+  const activeLeagues = leagues.length > 0 ? leagues : AVAILABLE_LEAGUES;
   const leagueData = await Promise.all(
-    LEAGUES.map(async (key) => {
+    activeLeagues.map(async (key) => {
       const title = t.league[key];
-      const response = await fetch(SCOREBOARD_URL(key, targetDate));
-      if (!response.ok) {
-        throw new Error(
-          locale === 'vi'
-            ? `Không thể tải ${title} (${response.status})`
-            : `Cannot fetch ${title} (${response.status})`,
-        );
+      const cacheKey = `livescore:${key}:${formatApiDate(targetDate)}:${locale}`;
+      const fresh = await getFreshCache<LeagueMatches>(cacheKey, LIVE_SCORE_CACHE_TTL_MS);
+      if (fresh) return fresh;
+
+      try {
+        const response = await fetch(SCOREBOARD_URL(key, targetDate));
+        if (!response.ok) {
+          throw new Error(
+            locale === 'vi'
+              ? `Không thể tải ${title} (${response.status})`
+              : `Cannot fetch ${title} (${response.status})`,
+          );
+        }
+
+        const payload = (await response.json()) as {
+          events?: Record<string, unknown>[];
+        };
+
+        const result: LeagueMatches = {
+          league: key,
+          title,
+          matches: (payload.events || [])
+            .map((event) => parseEvent(key, title, event, locale))
+            .filter((match): match is MatchItem => Boolean(match))
+            .sort((a, b) => {
+              if (a.status === 'LIVE' && b.status !== 'LIVE') return -1;
+              if (a.status !== 'LIVE' && b.status === 'LIVE') return 1;
+              return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
+            }),
+        };
+        await writeCache(cacheKey, result);
+        return result;
+      } catch (error) {
+        const stale = await readCache<LeagueMatches>(cacheKey);
+        if (stale?.data) return stale.data;
+        throw error;
       }
-
-      const payload = (await response.json()) as {
-        events?: Record<string, unknown>[];
-      };
-
-      const matches = (payload.events || [])
-        .map((event) => parseEvent(key, title, event, locale))
-        .filter((match): match is MatchItem => Boolean(match))
-        .sort((a, b) => {
-          if (a.status === 'LIVE' && b.status !== 'LIVE') return -1;
-          if (a.status !== 'LIVE' && b.status === 'LIVE') return 1;
-          return new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime();
-        });
-
-      return {
-        league: key,
-        title,
-        matches,
-      };
     }),
   );
 

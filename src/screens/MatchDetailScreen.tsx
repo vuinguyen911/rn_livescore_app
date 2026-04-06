@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { fetchMatchDetail } from '../services/matchDetail';
@@ -102,13 +102,28 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
       </Section>
 
       <Section title={t.detail.sectionLineup}>
+        {detail.isPredictedLineup ? <Text style={styles.predicted}>{t.detail.predictedLineup}</Text> : null}
         {detail.lineups.length === 0 ? (
           <Text style={styles.muted}>{t.detail.lineupMissing}</Text>
         ) : (
           detail.lineups.map((lu) => (
             <View key={lu.team} style={styles.lineupCard}>
               <Text style={styles.lineupTeam}>{lu.team}</Text>
-              <Text style={styles.bodyText}>{lu.players.join(', ') || t.detail.lineupPlayersMissing}</Text>
+              {lu.players.length === 0 ? (
+                <Text style={styles.bodyText}>{t.detail.lineupPlayersMissing}</Text>
+              ) : (
+                lu.players.map((player, idx) => (
+                  <View key={`${lu.team}-${player.name}-${idx}`} style={styles.playerRow}>
+                    {player.avatar ? <Image source={{ uri: player.avatar }} style={styles.playerAvatar} /> : null}
+                    <View style={styles.playerCol}>
+                      <Text style={styles.bodyText}>{player.name}</Text>
+                      <Text style={styles.playerForm}>
+                        {t.detail.playerForm}: {player.form || t.detail.noPlayerForm}
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              )}
             </View>
           ))
         )}
@@ -238,6 +253,32 @@ const styles = StyleSheet.create({
     color: '#0F172A',
     fontSize: 14,
     fontWeight: '800',
+  },
+  predicted: {
+    color: '#1D4ED8',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  playerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  playerAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#E2E8F0',
+  },
+  playerCol: {
+    flex: 1,
+  },
+  playerForm: {
+    color: '#64748B',
+    fontSize: 11,
   },
   tableRank: {
     width: 32,

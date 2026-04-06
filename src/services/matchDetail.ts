@@ -1,8 +1,10 @@
 import { MatchDetail } from '../types/matchDetail';
 import { Locale, translations } from '../i18n/translations';
+import { getFreshCache, readCache, writeCache } from './cache';
 
 const summaryUrl = (league: string, eventId: string) =>
   `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/summary?event=${eventId}`;
+const MATCH_DETAIL_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const asText = (value: unknown, fallback = ''): string => {
   if (value === null || value === undefined) return fallback;
@@ -58,24 +60,44 @@ const parseStats = (payload: any, locale: Locale): MatchDetail['stats'] => {
   }));
 };
 
-const extractRosterPlayers = (roster: any): string[] => {
+const normalizePlayer = (input: any): { name: string; avatar?: string; form?: string } | null => {
+  const name = asText(
+    input?.athlete?.displayName || input?.displayName || input?.fullName || input?.name,
+    '',
+  ).trim();
+  if (!name) return null;
+
+  const avatar = asText(
+    input?.athlete?.headshot?.href || input?.athlete?.headshot || input?.headshot?.href || input?.headshot,
+    '',
+  ).trim();
+  const form = asText(
+    input?.form || input?.recentForm || input?.stats?.form || input?.athlete?.form || input?.displayValue,
+    '',
+  ).trim();
+
+  return {
+    name,
+    avatar: avatar || undefined,
+    form: form || undefined,
+  };
+};
+
+const extractRosterPlayers = (roster: any): MatchDetail['lineups'][number]['players'] => {
   const groups = roster?.athletes || roster?.groups || [];
   if (!Array.isArray(groups) || groups.length === 0) return [];
 
-  const names: string[] = [];
+  const players: MatchDetail['lineups'][number]['players'] = [];
   groups.forEach((group: any) => {
     const items = group?.items || group?.athletes || [];
     if (!Array.isArray(items)) return;
     items.forEach((item: any) => {
-      const name = asText(
-        item?.athlete?.displayName || item?.displayName || item?.fullName || item?.name,
-        '',
-      ).trim();
-      if (name) names.push(name);
+      const normalized = normalizePlayer(item);
+      if (normalized) players.push(normalized);
     });
   });
 
-  return names;
+  return players;
 };
 
 const parseLineups = (payload: any, locale: Locale): MatchDetail['lineups'] => {
@@ -90,15 +112,13 @@ const parseLineups = (payload: any, locale: Locale): MatchDetail['lineups'] => {
       );
 
       const players = (item?.formation?.athletes || item?.athletes || [])
-        .map((p: any) =>
-          asText(p?.athlete?.displayName || p?.displayName || p?.fullName, '').trim(),
-        )
-        .filter(Boolean)
+        .map((p: any) => normalizePlayer(p))
+        .filter((p: any): p is NonNullable<typeof p> => Boolean(p))
         .slice(0, 18);
 
       return {
         team,
-        players: players.length > 0 ? players : [t.detail.lineupPlayersMissing],
+        players: players.length > 0 ? players : [{ name: t.detail.lineupPlayersMissing }],
       };
     });
   }
@@ -110,7 +130,7 @@ const parseLineups = (payload: any, locale: Locale): MatchDetail['lineups'] => {
       const players = extractRosterPlayers(roster);
       return {
         team,
-        players: players.length > 0 ? players.slice(0, 22) : [t.detail.lineupMissing],
+        players: players.length > 0 ? players.slice(0, 22) : [{ name: t.detail.lineupMissing }],
       };
     });
   }
@@ -168,44 +188,61 @@ export const fetchMatchDetail = async (
   locale: Locale,
 ): Promise<MatchDetail> => {
   const t = translations[locale];
-  const response = await fetch(summaryUrl(league, eventId));
-  if (!response.ok) {
-    throw new Error(
-      locale === 'vi'
-        ? `Không thể tải chi tiết trận (${response.status})`
-        : `Cannot fetch match detail (${response.status})`,
-    );
+  const cacheKey = `match_detail:${league}:${eventId}:${locale}`;
+  const fresh = await getFreshCache<MatchDetail>(cacheKey, MATCH_DETAIL_CACHE_TTL_MS);
+  if (fresh) return fresh;
+
+  try {
+    const response = await fetch(summaryUrl(league, eventId));
+    if (!response.ok) {
+      throw new Error(
+        locale === 'vi'
+          ? `Không thể tải chi tiết trận (${response.status})`
+          : `Cannot fetch match detail (${response.status})`,
+      );
+    }
+
+    const payload: any = await response.json();
+    const headerComp = payload?.header?.competitions?.[0] || {};
+    const competitors = headerComp?.competitors || [];
+    const home = competitors.find((c: any) => c?.homeAway === 'home') || {};
+    const away = competitors.find((c: any) => c?.homeAway === 'away') || {};
+
+    const summary: string[] = [
+      asText(headerComp?.status?.type?.detail, ''),
+      asText(payload?.header?.season?.year, ''),
+      asText(payload?.pickcenter?.summary, ''),
+    ].filter(Boolean);
+
+    const lineups = parseLineups(payload, locale);
+    const isPreMatch = asText(headerComp?.status?.type?.state, '') === 'pre';
+
+    const result: MatchDetail = {
+      eventId,
+      league,
+      homeName: asText(home?.team?.displayName, locale === 'vi' ? 'Đội nhà' : 'Home'),
+      awayName: asText(away?.team?.displayName, locale === 'vi' ? 'Đội khách' : 'Away'),
+      homeScore: asText(home?.score, '0'),
+      awayScore: asText(away?.score, '0'),
+      kickoff: asText(payload?.header?.competitions?.[0]?.date, ''),
+      status: asText(headerComp?.status?.type?.shortDetail || headerComp?.status?.type?.detail, ''),
+      venue: asText(
+        payload?.gameInfo?.venue?.fullName || payload?.gameInfo?.venue?.address?.city,
+        t.detail.venueMissing,
+      ),
+      summary: summary.length ? summary : [t.detail.summaryMissing],
+      h2h: parseH2H(payload, locale),
+      stats: parseStats(payload, locale),
+      lineups,
+      table: parseTable(payload),
+      isPredictedLineup: isPreMatch && lineups.length > 0,
+    };
+
+    await writeCache(cacheKey, result);
+    return result;
+  } catch (error) {
+    const stale = await readCache<MatchDetail>(cacheKey);
+    if (stale?.data) return stale.data;
+    throw error;
   }
-
-  const payload: any = await response.json();
-  const headerComp = payload?.header?.competitions?.[0] || {};
-  const competitors = headerComp?.competitors || [];
-  const home = competitors.find((c: any) => c?.homeAway === 'home') || {};
-  const away = competitors.find((c: any) => c?.homeAway === 'away') || {};
-
-  const summary: string[] = [
-    asText(headerComp?.status?.type?.detail, ''),
-    asText(payload?.header?.season?.year, ''),
-    asText(payload?.pickcenter?.summary, ''),
-  ].filter(Boolean);
-
-  return {
-    eventId,
-    league,
-    homeName: asText(home?.team?.displayName, locale === 'vi' ? 'Đội nhà' : 'Home'),
-    awayName: asText(away?.team?.displayName, locale === 'vi' ? 'Đội khách' : 'Away'),
-    homeScore: asText(home?.score, '0'),
-    awayScore: asText(away?.score, '0'),
-    kickoff: asText(payload?.header?.competitions?.[0]?.date, ''),
-    status: asText(headerComp?.status?.type?.shortDetail || headerComp?.status?.type?.detail, ''),
-    venue: asText(
-      payload?.gameInfo?.venue?.fullName || payload?.gameInfo?.venue?.address?.city,
-      t.detail.venueMissing,
-    ),
-    summary: summary.length ? summary : [t.detail.summaryMissing],
-    h2h: parseH2H(payload, locale),
-    stats: parseStats(payload, locale),
-    lineups: parseLineups(payload, locale),
-    table: parseTable(payload),
-  };
 };

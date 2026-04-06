@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -9,12 +10,15 @@ import {
   Text,
   View,
 } from 'react-native';
-import { fetchTop5LiveScores } from '../services/livescore';
+import { AVAILABLE_LEAGUES, fetchTop5LiveScores } from '../services/livescore';
 import { RootStackParamList } from '../../App';
-import { LeagueMatches, MatchItem } from '../types/livescore';
+import { LeagueKey, LeagueMatches, MatchItem } from '../types/livescore';
 import { useI18n } from '../i18n';
+import { FavoriteTeam, getFavoriteTeams, toggleFavoriteTeam } from '../services/favorites';
+import { syncFavoriteMatchNotifications } from '../services/notifications';
 
 const REFRESH_INTERVAL_MS = 60_000;
+const DEFAULT_LEAGUES: LeagueKey[] = ['uefa.champions', 'eng.1', 'esp.1', 'ger.1', 'ita.1'];
 
 const toKickoff = (value: string, dateLocale: string): string => {
   if (!value) return '--:--';
@@ -75,6 +79,17 @@ export default function HomeScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [calendarAnchor, setCalendarAnchor] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedLeagues, setSelectedLeagues] = useState<LeagueKey[]>(DEFAULT_LEAGUES);
+  const [leagueMenuOpen, setLeagueMenuOpen] = useState(false);
+  const [favorites, setFavorites] = useState<FavoriteTeam[]>([]);
+
+  useEffect(() => {
+    const loadFavorites = async () => {
+      const teams = await getFavoriteTeams();
+      setFavorites(teams);
+    };
+    void loadFavorites();
+  }, []);
 
   const load = useCallback(async (targetDate: Date, isRefresh = false) => {
     if (isRefresh) {
@@ -85,7 +100,7 @@ export default function HomeScreen({ navigation }: Props) {
 
     setError(null);
     try {
-      const next = await fetchTop5LiveScores(targetDate, locale);
+      const next = await fetchTop5LiveScores(targetDate, locale, selectedLeagues);
       setData(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : t.home.loadErrorMessage);
@@ -93,7 +108,7 @@ export default function HomeScreen({ navigation }: Props) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [locale, t.home.loadErrorMessage]);
+  }, [locale, selectedLeagues, t.home.loadErrorMessage]);
 
   useEffect(() => {
     void load(selectedDate);
@@ -110,8 +125,22 @@ export default function HomeScreen({ navigation }: Props) {
     () => data.flatMap((league) => league.matches).filter((match) => match.status === 'LIVE').length,
     [data],
   );
+  const allMatches = useMemo(() => data.flatMap((league) => league.matches), [data]);
+  const favoriteIds = useMemo(() => new Set(favorites.map((item) => item.id)), [favorites]);
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarAnchor), [calendarAnchor]);
+
+  useEffect(() => {
+    void syncFavoriteMatchNotifications(allMatches, favorites, locale);
+  }, [allMatches, favorites, locale]);
+
+  const handleToggleFavorite = useCallback(
+    async (team: FavoriteTeam) => {
+      const next = await toggleFavoriteTeam(team);
+      setFavorites(next);
+    },
+    [],
+  );
 
   if (loading) {
     return (
@@ -142,6 +171,73 @@ export default function HomeScreen({ navigation }: Props) {
         <Text style={styles.headerSub}>
           {t.home.viewingDate}: {selectedDate.toLocaleDateString(dateLocale)} • {t.common.live}: {liveCount}
         </Text>
+      </View>
+
+      <View style={styles.selectCard}>
+        <Pressable
+          style={styles.selectBtn}
+          onPress={() => setLeagueMenuOpen((prev) => !prev)}
+          accessibilityLabel={t.home.leagueSelectOpen}
+        >
+          <Text style={styles.selectBtnText}>
+            {t.home.leagueSelectLabel} • {t.home.selectedCount}: {selectedLeagues.length}
+          </Text>
+        </Pressable>
+
+        {leagueMenuOpen && (
+          <View style={styles.selectMenu}>
+            {AVAILABLE_LEAGUES.map((leagueKey) => {
+              const checked = selectedLeagues.includes(leagueKey);
+              return (
+                <Pressable
+                  key={leagueKey}
+                  style={styles.selectOption}
+                  onPress={() =>
+                    setSelectedLeagues((prev) => {
+                      if (checked) {
+                        const next = prev.filter((item) => item !== leagueKey);
+                        return next.length > 0 ? next : prev;
+                      }
+                      return [...prev, leagueKey];
+                    })
+                  }
+                >
+                  <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+                    <Text style={styles.checkboxText}>{checked ? '✓' : ''}</Text>
+                  </View>
+                  <Text style={styles.selectOptionText}>{t.league[leagueKey]}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      <View style={styles.favoriteCard}>
+        <Text style={styles.favoriteTitle}>{t.home.myFavorites}</Text>
+        {favorites.length === 0 ? (
+          <Text style={styles.emptyText}>{t.common.noData}</Text>
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.favoriteRow}>
+            {favorites.map((team) => (
+              <Pressable
+                key={team.id}
+                style={styles.favoriteChip}
+                accessibilityLabel={t.home.openTeamSchedule}
+                onPress={() =>
+                  navigation.navigate('TeamSchedule', {
+                    teamId: team.id,
+                    teamName: team.name,
+                    league: team.league,
+                  })
+                }
+              >
+                {team.logo ? <Image source={{ uri: team.logo }} style={styles.favoriteLogo} /> : null}
+                <Text style={styles.favoriteChipText}>{team.name}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       <View style={styles.calendarWrap}>
@@ -191,25 +287,74 @@ export default function HomeScreen({ navigation }: Props) {
             league.matches.map((match) => {
               const badge = statusBadgeStyle(match.status, t.common.upcoming);
               return (
-                <Pressable
-                  key={match.id}
-                  style={styles.matchRow}
-                  onPress={() =>
-                    navigation.navigate('MatchDetail', {
-                      eventId: match.id,
-                      league: match.league,
-                      homeName: match.homeName,
-                      awayName: match.awayName,
-                    })
-                  }
-                >
+                <View key={match.id} style={styles.matchRow}>
                   <View style={[styles.badge, { backgroundColor: badge.backgroundColor }]}>
                     <Text style={[styles.badgeText, { color: badge.color }]}>{match.minute || badge.label}</Text>
                   </View>
 
                   <View style={styles.teamsCol}>
-                    <Text style={styles.team}>{match.homeName}</Text>
-                    <Text style={styles.team}>{match.awayName}</Text>
+                    <View style={styles.teamLine}>
+                      <Pressable
+                        onPress={() =>
+                          navigation.navigate('TeamSchedule', {
+                            teamId: match.homeTeamId,
+                            teamName: match.homeName,
+                            league: match.league,
+                          })
+                        }
+                        disabled={!match.homeTeamId}
+                      >
+                        <Text style={styles.team}>{match.homeName}</Text>
+                      </Pressable>
+                      <Pressable
+                        style={styles.starBtn}
+                        accessibilityLabel={
+                          favoriteIds.has(match.homeTeamId) ? t.home.removeFavorite : t.home.addFavorite
+                        }
+                        onPress={() =>
+                          void handleToggleFavorite({
+                            id: match.homeTeamId,
+                            name: match.homeName,
+                            league: match.league,
+                            logo: match.homeLogo,
+                          })
+                        }
+                        disabled={!match.homeTeamId}
+                      >
+                        <Text style={styles.starText}>{favoriteIds.has(match.homeTeamId) ? '★' : '☆'}</Text>
+                      </Pressable>
+                    </View>
+                    <View style={styles.teamLine}>
+                      <Pressable
+                        onPress={() =>
+                          navigation.navigate('TeamSchedule', {
+                            teamId: match.awayTeamId,
+                            teamName: match.awayName,
+                            league: match.league,
+                          })
+                        }
+                        disabled={!match.awayTeamId}
+                      >
+                        <Text style={styles.team}>{match.awayName}</Text>
+                      </Pressable>
+                      <Pressable
+                        style={styles.starBtn}
+                        accessibilityLabel={
+                          favoriteIds.has(match.awayTeamId) ? t.home.removeFavorite : t.home.addFavorite
+                        }
+                        onPress={() =>
+                          void handleToggleFavorite({
+                            id: match.awayTeamId,
+                            name: match.awayName,
+                            league: match.league,
+                            logo: match.awayLogo,
+                          })
+                        }
+                        disabled={!match.awayTeamId}
+                      >
+                        <Text style={styles.starText}>{favoriteIds.has(match.awayTeamId) ? '★' : '☆'}</Text>
+                      </Pressable>
+                    </View>
                     <Text style={styles.kickoff}>
                       {toKickoff(match.kickoff, dateLocale)} • {match.statusText}
                     </Text>
@@ -218,8 +363,21 @@ export default function HomeScreen({ navigation }: Props) {
                   <View style={styles.scoreCol}>
                     <Text style={styles.score}>{match.homeScore}</Text>
                     <Text style={styles.score}>{match.awayScore}</Text>
+                    <Pressable
+                      style={styles.detailBtn}
+                      onPress={() =>
+                        navigation.navigate('MatchDetail', {
+                          eventId: match.id,
+                          league: match.league,
+                          homeName: match.homeName,
+                          awayName: match.awayName,
+                        })
+                      }
+                    >
+                      <Text style={styles.detailBtnText}>{t.home.openMatchDetail}</Text>
+                    </Pressable>
                   </View>
-                </Pressable>
+                </View>
               );
             })
           )}
@@ -280,6 +438,63 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 10,
     gap: 10,
+  },
+  selectCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 10,
+    gap: 8,
+  },
+  selectBtn: {
+    backgroundColor: '#E2E8F0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  selectBtnText: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  selectMenu: {
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  selectOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  selectOptionText: {
+    color: '#1E293B',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#94A3B8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  checkboxChecked: {
+    backgroundColor: '#1D4ED8',
+    borderColor: '#1D4ED8',
+  },
+  checkboxText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+    lineHeight: 13,
   },
   calendarTopBar: {
     flexDirection: 'row',
@@ -356,6 +571,39 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
   },
+  favoriteCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 10,
+    gap: 8,
+  },
+  favoriteTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  favoriteRow: {
+    gap: 8,
+  },
+  favoriteChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#DBEAFE',
+    borderRadius: 999,
+  },
+  favoriteLogo: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+  },
+  favoriteChipText: {
+    color: '#1E3A8A',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   badge: {
     minWidth: 62,
     borderRadius: 999,
@@ -371,10 +619,26 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 3,
   },
+  teamLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   team: {
     fontSize: 14,
     color: '#0F172A',
     fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
+  starBtn: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  starText: {
+    color: '#F59E0B',
+    fontSize: 16,
+    fontWeight: '800',
+    lineHeight: 16,
   },
   kickoff: {
     fontSize: 12,
@@ -382,7 +646,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   scoreCol: {
-    minWidth: 24,
+    minWidth: 86,
     alignItems: 'flex-end',
     gap: 3,
   },
@@ -391,5 +655,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0F172A',
     lineHeight: 22,
+  },
+  detailBtn: {
+    marginTop: 6,
+    backgroundColor: '#1D4ED8',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  detailBtnText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

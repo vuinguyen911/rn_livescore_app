@@ -3,7 +3,7 @@ export type Locale = 'vi' | 'en';
 export const translations = {
   vi: {
     app: {
-      homeTitle: 'UVI LiveScore',
+      homeTitle: 'Trực tiếp kết quả bóng đá',
       matchDetailTitle: 'Chi tiết trận đấu',
     },
     common: {
@@ -20,11 +20,19 @@ export const translations = {
       loading: 'Đang tải live score...',
       loadErrorTitle: 'Lỗi tải dữ liệu',
       loadErrorMessage: 'Không tải được dữ liệu live score.',
-      headerTitle: 'Tỉ số trực tiếp: Top 5 + Cúp Anh',
+      headerTitle: 'Tỉ số trực tiếp bóng đá',
       viewingDate: 'Ngày xem',
       prev7Days: '-7 ngày',
       next7Days: '+7 ngày',
       noMatchInDay: 'Không có trận trong ngày đã chọn.',
+      leagueSelectLabel: 'Chọn giải đấu',
+      leagueSelectOpen: 'Mở danh sách giải',
+      selectedCount: 'Đã chọn',
+      myFavorites: 'Đội tôi thích',
+      openTeamSchedule: 'Xem lịch thi đấu đội',
+      openMatchDetail: 'Chi tiết trận',
+      addFavorite: 'Thích đội',
+      removeFavorite: 'Bỏ thích đội',
     },
     detail: {
       loading: 'Đang tải chi tiết trận...',
@@ -46,6 +54,17 @@ export const translations = {
       unknownTeam: 'Đội bóng',
       pointsLabel: 'Điểm',
       playedLabel: 'Trận',
+      predictedLineup: 'Đội hình dự đoán trước trận',
+      playerForm: 'Phong độ',
+      noPlayerForm: 'Chưa có dữ liệu phong độ',
+    },
+    team: {
+      scheduleTitle: 'Lịch thi đấu đội',
+      upcomingMatches: 'Các trận sắp tới',
+      noUpcoming: 'Chưa có lịch thi đấu sắp tới.',
+    },
+    notification: {
+      reminderTitle: 'Nhắc lịch trận đấu',
     },
     league: {
       'eng.1': 'Premier League',
@@ -56,6 +75,8 @@ export const translations = {
       'eng.2': 'Championship',
       'ita.1': 'Serie A',
       'fra.1': 'Ligue 1',
+      'uefa.champions': 'Cúp C1',
+      'uefa.europa': 'Cúp C2',
     },
     statLabel: {
       possessionPct: 'Kiểm soát bóng',
@@ -73,7 +94,7 @@ export const translations = {
   },
   en: {
     app: {
-      homeTitle: 'UVI LiveScore',
+      homeTitle: 'Live Football Results',
       matchDetailTitle: 'Match Detail',
     },
     common: {
@@ -90,11 +111,19 @@ export const translations = {
       loading: 'Loading live scores...',
       loadErrorTitle: 'Failed to load data',
       loadErrorMessage: 'Unable to load live score data.',
-      headerTitle: 'Live Score: Top 5 + FA Cup',
+      headerTitle: 'Live Football Scores',
       viewingDate: 'Viewing date',
       prev7Days: '-7 days',
       next7Days: '+7 days',
       noMatchInDay: 'No matches on selected day.',
+      leagueSelectLabel: 'Select leagues',
+      leagueSelectOpen: 'Open league selector',
+      selectedCount: 'Selected',
+      myFavorites: 'My favorite teams',
+      openTeamSchedule: 'Open team schedule',
+      openMatchDetail: 'Match details',
+      addFavorite: 'Favorite team',
+      removeFavorite: 'Unfavorite team',
     },
     detail: {
       loading: 'Loading match details...',
@@ -116,6 +145,17 @@ export const translations = {
       unknownTeam: 'Team',
       pointsLabel: 'Pts',
       playedLabel: 'P',
+      predictedLineup: 'Predicted lineups before kickoff',
+      playerForm: 'Form',
+      noPlayerForm: 'No form data',
+    },
+    team: {
+      scheduleTitle: 'Team Schedule',
+      upcomingMatches: 'Upcoming fixtures',
+      noUpcoming: 'No upcoming fixtures.',
+    },
+    notification: {
+      reminderTitle: 'Match reminder',
     },
     league: {
       'eng.1': 'Premier League',
@@ -126,6 +166,8 @@ export const translations = {
       'eng.2': 'Championship',
       'ita.1': 'Serie A',
       'fra.1': 'Ligue 1',
+      'uefa.champions': 'UEFA Champions League',
+      'uefa.europa': 'UEFA Europa League',
     },
     statLabel: {
       possessionPct: 'Possession',
@@ -142,4 +184,3 @@ export const translations = {
     },
   },
 } as const;
-

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "uvi.com.livescore",
+    "name": "Trực tiếp kết quả bóng đá",
     "slug": "uvi-livescore",
     "version": "1.1.0",
     "orientation": "portrait",
@@ -30,6 +30,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "expo-notifications"
+    ],
     "extra": {
       "eas": {
         "projectId": "ff6dd672-3af8-4fc8-8a27-3dc6ac14b1d0"

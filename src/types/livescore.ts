@@ -6,7 +6,9 @@ export type LeagueKey =
   | 'esp.1'
   | 'ger.1'
   | 'ita.1'
-  | 'fra.1';
+  | 'fra.1'
+  | 'uefa.champions'
+  | 'uefa.europa';
 
 export type MatchStatus = 'LIVE' | 'FT' | 'UPCOMING';
 
@@ -20,6 +22,10 @@ export type MatchItem = {
   minute?: string;
   homeName: string;
   awayName: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeLogo?: string;
+  awayLogo?: string;
   homeScore: number;
   awayScore: number;
 };

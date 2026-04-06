@@ -4,7 +4,11 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/screens/HomeScreen';
 import MatchDetailScreen from './src/screens/MatchDetailScreen';
+import TeamScheduleScreen from './src/screens/TeamScheduleScreen';
 import { I18nProvider, useI18n } from './src/i18n';
+import * as Notifications from 'expo-notifications';
+import { useEffect } from 'react';
+import { configureNotifications } from './src/services/notifications';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -13,6 +17,11 @@ export type RootStackParamList = {
     league: string;
     homeName: string;
     awayName: string;
+  };
+  TeamSchedule: {
+    teamId: string;
+    teamName: string;
+    league: string;
   };
 };
 
@@ -53,6 +62,17 @@ const LanguageSwitch = () => {
 
 const AppNavigator = () => {
   const { t } = useI18n();
+  useEffect(() => {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+    void configureNotifications();
+  }, []);
 
   return (
     <NavigationContainer theme={appTheme}>
@@ -78,10 +98,20 @@ const AppNavigator = () => {
             headerRight: () => <LanguageSwitch />,
           }}
         />
+        <Stack.Screen
+          name="TeamSchedule"
+          component={TeamScheduleScreen}
+          options={{
+            title: t.team.scheduleTitle,
+            headerStyle: { backgroundColor: '#0F172A' },
+            headerTintColor: '#FFFFFF',
+            headerRight: () => <LanguageSwitch />,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
-}
+};
 
 export default function App() {
   return (

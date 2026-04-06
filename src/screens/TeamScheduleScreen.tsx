@@ -10,7 +10,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TeamSchedule'>;
 
 export default function TeamScheduleScreen({ route, navigation }: Props) {
   const { teamId, teamName, league } = route.params;
-  const { t, locale, dateLocale } = useI18n();
+  const { t, locale, dateLocale, timeZone } = useI18n();
   const [fixtures, setFixtures] = useState<TeamFixture[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +46,8 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
           <View key={item.id} style={styles.card}>
             <Text style={styles.match}>{item.homeName} vs {item.awayName}</Text>
             <Text style={styles.meta}>
-              {item.kickoff ? new Date(item.kickoff).toLocaleString(dateLocale) : '--'} • {item.status || '--'}
+              {item.kickoff ? new Date(item.kickoff).toLocaleString(dateLocale, { timeZone }) : '--'} •{' '}
+              {item.status || '--'}
             </Text>
             {item.homeScore || item.awayScore ? (
               <Text style={styles.score}>{item.homeScore || '-'} - {item.awayScore || '-'}</Text>
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -104,4 +105,3 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-

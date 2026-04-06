@@ -10,7 +10,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TeamPlayers'>;
 
 export default function TeamPlayersScreen({ route, navigation }: Props) {
   const { teamId, teamName, league } = route.params;
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState<TeamPlayer[]>([]);
 
@@ -21,12 +21,12 @@ export default function TeamPlayersScreen({ route, navigation }: Props) {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const next = await fetchTeamPlayersWithInjuries(league, teamId, 'vi');
+      const next = await fetchTeamPlayersWithInjuries(league, teamId, locale);
       setPlayers(next);
       setLoading(false);
     };
     void load();
-  }, [league, teamId]);
+  }, [league, teamId, locale]);
 
   const injuredCount = useMemo(() => players.filter((p) => p.injured).length, [players]);
 
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     backgroundColor: '#0F172A',
-    borderRadius: 12,
+    borderRadius: 4,
     padding: 12,
   },
   headerTitle: {
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    borderRadius: 4,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     padding: 10,
@@ -143,4 +143,3 @@ const styles = StyleSheet.create({
     color: '#B91C1C',
   },
 });
-

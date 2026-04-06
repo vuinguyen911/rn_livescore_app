@@ -20,7 +20,7 @@ import { syncFavoriteMatchNotifications } from '../services/notifications';
 const REFRESH_INTERVAL_MS = 60_000;
 const DEFAULT_LEAGUES: LeagueKey[] = ['uefa.champions', 'eng.1', 'esp.1', 'ger.1', 'ita.1'];
 
-const toKickoff = (value: string, dateLocale: string): string => {
+const toKickoff = (value: string, dateLocale: string, timeZone: string): string => {
   if (!value) return '--:--';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '--:--';
@@ -29,14 +29,16 @@ const toKickoff = (value: string, dateLocale: string): string => {
     minute: '2-digit',
     day: '2-digit',
     month: '2-digit',
+    timeZone,
   });
 };
 
-const formatDayLabel = (value: Date, dateLocale: string): string =>
+const formatDayLabel = (value: Date, dateLocale: string, timeZone: string): string =>
   value.toLocaleDateString(dateLocale, {
     weekday: 'short',
     day: '2-digit',
     month: '2-digit',
+    timeZone,
   });
 
 const sameDay = (a: Date, b: Date): boolean =>
@@ -65,14 +67,14 @@ const statusBadgeStyle = (status: MatchItem['status'], upcomingLabel: string) =>
     case 'FT':
       return { backgroundColor: '#334155', color: '#FFFFFF', label: 'FT' };
     default:
-      return { backgroundColor: '#E2E8F0', color: '#0F172A', label: upcomingLabel };
+      return { backgroundColor: '#F97316', color: '#FFFFFF', label: upcomingLabel };
   }
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const { t, locale, dateLocale } = useI18n();
+  const { t, locale, dateLocale, timeZone } = useI18n();
   const [data, setData] = useState<LeagueMatches[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -169,7 +171,7 @@ export default function HomeScreen({ navigation }: Props) {
       <View style={styles.headerCard}>
         <Text style={styles.headerTitle}>{t.home.headerTitle}</Text>
         <Text style={styles.headerSub}>
-          {t.home.viewingDate}: {selectedDate.toLocaleDateString(dateLocale)} • {t.common.live}: {liveCount}
+          {t.home.viewingDate}: {selectedDate.toLocaleDateString(dateLocale, { timeZone })} • {t.common.live}: {liveCount}
         </Text>
       </View>
 
@@ -270,7 +272,7 @@ export default function HomeScreen({ navigation }: Props) {
                 onPress={() => setSelectedDate(day)}
               >
                 <Text style={[styles.dayText, selected && styles.dayTextActive]}>
-                  {formatDayLabel(day, dateLocale)}
+                  {formatDayLabel(day, dateLocale, timeZone)}
                 </Text>
               </Pressable>
             );
@@ -367,7 +369,7 @@ export default function HomeScreen({ navigation }: Props) {
                       </Pressable>
                     </View>
                     <Text style={styles.kickoff}>
-                      {toKickoff(match.kickoff, dateLocale)} • {match.statusText}
+                      {toKickoff(match.kickoff, dateLocale, timeZone)} • {match.statusText}
                     </Text>
                   </View>
 
@@ -417,7 +419,7 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     backgroundColor: '#0F172A',
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 14,
   },
   headerTitle: {
@@ -432,20 +434,20 @@ const styles = StyleSheet.create({
   },
   calendarWrap: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 4,
     paddingVertical: 10,
     paddingHorizontal: 10,
     gap: 10,
   },
   selectCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 4,
     padding: 10,
     gap: 8,
   },
   selectBtn: {
     backgroundColor: '#E2E8F0',
-    borderRadius: 10,
+    borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
@@ -457,7 +459,7 @@ const styles = StyleSheet.create({
   selectMenu: {
     borderWidth: 1,
     borderColor: '#CBD5E1',
-    borderRadius: 10,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   selectOption: {
@@ -501,7 +503,7 @@ const styles = StyleSheet.create({
   },
   navBtn: {
     backgroundColor: '#E2E8F0',
-    borderRadius: 999,
+    borderRadius: 4,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
@@ -512,7 +514,7 @@ const styles = StyleSheet.create({
   },
   todayBtn: {
     backgroundColor: '#1D4ED8',
-    borderRadius: 999,
+    borderRadius: 4,
     paddingVertical: 6,
     paddingHorizontal: 14,
   },
@@ -526,7 +528,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   dayPill: {
-    borderRadius: 999,
+    borderRadius: 4,
     borderWidth: 1,
     borderColor: '#CBD5E1',
     paddingVertical: 8,
@@ -547,7 +549,7 @@ const styles = StyleSheet.create({
   },
   leagueCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 4,
     padding: 12,
     gap: 10,
   },
@@ -566,12 +568,12 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 10,
   },
   favoriteCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 4,
     padding: 10,
     gap: 8,
   },
@@ -590,12 +592,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     backgroundColor: '#DBEAFE',
-    borderRadius: 999,
+    borderRadius: 4,
   },
   favoriteLogo: {
     width: 16,
     height: 16,
-    borderRadius: 8,
+    borderRadius: 4,
   },
   favoriteChipText: {
     color: '#1E3A8A',
@@ -604,7 +606,7 @@ const styles = StyleSheet.create({
   },
   badge: {
     minWidth: 62,
-    borderRadius: 999,
+    borderRadius: 4,
     paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',

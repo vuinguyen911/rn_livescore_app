@@ -15,6 +15,8 @@ export const translations = {
       loading: 'Đang tải...',
       languageVi: 'VI',
       languageEn: 'EN',
+      timezoneVn: 'Việt Nam',
+      timezoneJp: 'Nhật Bản',
     },
     home: {
       loading: 'Đang tải live score...',
@@ -128,6 +130,8 @@ export const translations = {
       loading: 'Loading...',
       languageVi: 'VI',
       languageEn: 'EN',
+      timezoneVn: 'Vietnam',
+      timezoneJp: 'Japan',
     },
     home: {
       loading: 'Loading live scores...',

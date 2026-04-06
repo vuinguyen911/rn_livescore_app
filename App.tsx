@@ -75,6 +75,30 @@ const LanguageSwitch = () => {
   );
 };
 
+const TimeZoneSwitch = () => {
+  const { timeZone, setTimeZone, t } = useI18n();
+  const isVn = timeZone === 'Asia/Ho_Chi_Minh';
+
+  return (
+    <View style={styles.tzWrap}>
+      <Pressable
+        style={[styles.tzBtn, isVn && styles.tzBtnActive]}
+        onPress={() => setTimeZone('Asia/Ho_Chi_Minh')}
+        accessibilityLabel={t.common.timezoneVn}
+      >
+        <Text style={[styles.tzText, isVn && styles.tzTextActive]}>VN</Text>
+      </Pressable>
+      <Pressable
+        style={[styles.tzBtn, !isVn && styles.tzBtnActive]}
+        onPress={() => setTimeZone('Asia/Tokyo')}
+        accessibilityLabel={t.common.timezoneJp}
+      >
+        <Text style={[styles.tzText, !isVn && styles.tzTextActive]}>JP</Text>
+      </Pressable>
+    </View>
+  );
+};
+
 const AppNavigator = () => {
   const { t } = useI18n();
   useEffect(() => {
@@ -100,6 +124,7 @@ const AppNavigator = () => {
             title: t.app.homeTitle,
             headerStyle: { backgroundColor: '#0F172A' },
             headerTintColor: '#FFFFFF',
+            headerLeft: () => <TimeZoneSwitch />,
             headerRight: () => <LanguageSwitch />,
           }}
         />
@@ -160,13 +185,13 @@ const styles = StyleSheet.create({
   langWrap: {
     flexDirection: 'row',
     backgroundColor: '#1E293B',
-    borderRadius: 999,
+    borderRadius: 4,
     padding: 2,
   },
   langBtn: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: 4,
   },
   langBtnActive: {
     backgroundColor: '#FFFFFF',
@@ -177,6 +202,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   langTextActive: {
+    color: '#0F172A',
+  },
+  tzWrap: {
+    flexDirection: 'row',
+    backgroundColor: '#1E293B',
+    borderRadius: 4,
+    padding: 2,
+    marginRight: 8,
+  },
+  tzBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  tzBtnActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  tzText: {
+    color: '#CBD5E1',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  tzTextActive: {
     color: '#0F172A',
   },
 });

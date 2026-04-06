@@ -16,7 +16,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 );
 
 export default function MatchDetailScreen({ route, navigation }: Props) {
-  const { t, locale, dateLocale } = useI18n();
+  const { t, locale, dateLocale, timeZone } = useI18n();
   const { eventId, league, homeName, awayName } = route.params;
   const [detail, setDetail] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
       setLoading(true);
       setError(null);
       try {
-        const result = await fetchMatchDetail(league, eventId, locale);
+        const result = await fetchMatchDetail(league, eventId, locale, timeZone);
         setDetail(result);
       } catch (e) {
         setError(e instanceof Error ? e.message : t.detail.loadErrorMessage);
@@ -41,7 +41,7 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
     };
 
     void load();
-  }, [eventId, league, locale, t.detail.loadErrorMessage]);
+  }, [eventId, league, locale, timeZone, t.detail.loadErrorMessage]);
 
   if (loading) {
     return (
@@ -67,7 +67,8 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
         <Text style={styles.matchTitle}>{detail.homeName} vs {detail.awayName}</Text>
         <Text style={styles.scoreLine}>{detail.homeScore} - {detail.awayScore}</Text>
         <Text style={styles.meta}>
-          {detail.status || '--'} {detail.kickoff ? `• ${new Date(detail.kickoff).toLocaleString(dateLocale)}` : ''}
+          {detail.status || '--'}{' '}
+          {detail.kickoff ? `• ${new Date(detail.kickoff).toLocaleString(dateLocale, { timeZone })}` : ''}
         </Text>
       </View>
 
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
   },
   scoreCard: {
     backgroundColor: '#0F172A',
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 14,
   },
   matchTitle: {
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 4,
     padding: 12,
     gap: 8,
   },
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
   lineupCard: {
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 10,
     gap: 6,
   },

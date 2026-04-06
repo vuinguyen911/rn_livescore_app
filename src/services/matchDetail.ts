@@ -11,6 +11,20 @@ const asText = (value: unknown, fallback = ''): string => {
   return String(value);
 };
 
+const formatKickoffSummary = (kickoff: string, locale: Locale, timeZone: string): string => {
+  const date = new Date(kickoff);
+  if (Number.isNaN(date.getTime())) return kickoff || '-';
+  return date.toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-US', {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone,
+  });
+};
+
 const translateStatLabel = (label: string, locale: Locale): string => {
   const key = label.trim().toLowerCase().replace(/\s+/g, '');
   const map: Record<string, keyof (typeof translations)['vi']['statLabel']> = {
@@ -194,9 +208,10 @@ export const fetchMatchDetail = async (
   league: string,
   eventId: string,
   locale: Locale,
+  timeZone: string,
 ): Promise<MatchDetail> => {
   const t = translations[locale];
-  const cacheKey = `match_detail:${league}:${eventId}:${locale}`;
+  const cacheKey = `match_detail:${league}:${eventId}:${locale}:${timeZone}`;
   const fresh = await getFreshCache<MatchDetail>(cacheKey, MATCH_DETAIL_CACHE_TTL_MS);
   if (fresh) return fresh;
 
@@ -216,11 +231,27 @@ export const fetchMatchDetail = async (
     const home = competitors.find((c: any) => c?.homeAway === 'home') || {};
     const away = competitors.find((c: any) => c?.homeAway === 'away') || {};
 
-    const summary: string[] = [
-      asText(headerComp?.status?.type?.detail, ''),
-      asText(payload?.header?.season?.year, ''),
-      asText(payload?.pickcenter?.summary, ''),
-    ].filter(Boolean);
+    const statusText = asText(
+      headerComp?.status?.type?.shortDetail || headerComp?.status?.type?.detail,
+      '',
+    );
+    const kickoff = asText(payload?.header?.competitions?.[0]?.date, '');
+    const pickSummary = asText(payload?.pickcenter?.summary, '');
+    const summary: string[] = [];
+
+    if (statusText) {
+      summary.push(locale === 'vi' ? `Trạng thái: ${statusText}` : `Status: ${statusText}`);
+    }
+    if (kickoff) {
+      summary.push(
+        locale === 'vi'
+          ? `Thời gian thi đấu: ${formatKickoffSummary(kickoff, locale, timeZone)}`
+          : `Kickoff: ${formatKickoffSummary(kickoff, locale, timeZone)}`,
+      );
+    }
+    if (pickSummary) {
+      summary.push(locale === 'vi' ? `Nhận định: ${pickSummary}` : `Insight: ${pickSummary}`);
+    }
 
     const lineups = parseLineups(payload, locale);
     const isPreMatch = asText(headerComp?.status?.type?.state, '') === 'pre';
@@ -232,8 +263,8 @@ export const fetchMatchDetail = async (
       awayName: asText(away?.team?.displayName, locale === 'vi' ? 'Đội khách' : 'Away'),
       homeScore: asText(home?.score, '0'),
       awayScore: asText(away?.score, '0'),
-      kickoff: asText(payload?.header?.competitions?.[0]?.date, ''),
-      status: asText(headerComp?.status?.type?.shortDetail || headerComp?.status?.type?.detail, ''),
+      kickoff,
+      status: statusText,
       venue: asText(
         payload?.gameInfo?.venue?.fullName || payload?.gameInfo?.venue?.address?.city,
         t.detail.venueMissing,

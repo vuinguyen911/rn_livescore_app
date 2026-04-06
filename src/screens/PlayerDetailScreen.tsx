@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#0F172A',
-    borderRadius: 12,
+    borderRadius: 4,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 4,
     padding: 12,
     gap: 8,
   },

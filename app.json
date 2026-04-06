@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "uvi.com.livescore",
+    "slug": "uvi-livescore",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B1220"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.uviblog.livescore"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B1220"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.uviblog.livescore",
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ff6dd672-3af8-4fc8-8a27-3dc6ac14b1d0"
+      }
+    },
+    "owner": "vuinguyen911"
+  }
+}

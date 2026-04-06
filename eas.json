@@ -1,0 +1,44 @@
+{
+  "cli": {
+    "version": ">= 16.12.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "credentialsSource": "local"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle",
+        "credentialsSource": "local"
+      },
+      "ios": {
+        "simulator": false
+      }
+    }
+  },
+  "submit": {
+    "internal": {
+      "android": {
+        "serviceAccountKeyPath": "${GOOGLE_SERVICE_ACCOUNT_JSON}",
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    },
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "${GOOGLE_SERVICE_ACCOUNT_JSON}",
+        "track": "production",
+        "releaseStatus": "completed"
+      }
+    }
+  }
+}

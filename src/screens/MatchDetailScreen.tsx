@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { fetchMatchDetail } from '../services/matchDetail';
@@ -113,7 +113,20 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
                 <Text style={styles.bodyText}>{t.detail.lineupPlayersMissing}</Text>
               ) : (
                 lu.players.map((player, idx) => (
-                  <View key={`${lu.team}-${player.name}-${idx}`} style={styles.playerRow}>
+                  <Pressable
+                    key={`${lu.team}-${player.name}-${idx}`}
+                    style={styles.playerRow}
+                    onPress={() =>
+                      navigation.navigate('PlayerDetail', {
+                        league,
+                        playerId: player.id,
+                        playerName: player.name,
+                        avatar: player.avatar,
+                        form: player.form,
+                        position: player.position,
+                      })
+                    }
+                  >
                     {player.avatar ? <Image source={{ uri: player.avatar }} style={styles.playerAvatar} /> : null}
                     <View style={styles.playerCol}>
                       <Text style={styles.bodyText}>{player.name}</Text>
@@ -121,7 +134,7 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
                         {t.detail.playerForm}: {player.form || t.detail.noPlayerForm}
                       </Text>
                     </View>
-                  </View>
+                  </Pressable>
                 ))
               )}
             </View>

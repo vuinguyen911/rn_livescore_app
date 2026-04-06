@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './src/screens/HomeScreen';
 import MatchDetailScreen from './src/screens/MatchDetailScreen';
 import TeamScheduleScreen from './src/screens/TeamScheduleScreen';
+import PlayerDetailScreen from './src/screens/PlayerDetailScreen';
 import { I18nProvider, useI18n } from './src/i18n';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
@@ -22,6 +23,14 @@ export type RootStackParamList = {
     teamId: string;
     teamName: string;
     league: string;
+  };
+  PlayerDetail: {
+    league: string;
+    playerId?: string;
+    playerName: string;
+    avatar?: string;
+    form?: string;
+    position?: string;
   };
 };
 
@@ -103,6 +112,16 @@ const AppNavigator = () => {
           component={TeamScheduleScreen}
           options={{
             title: t.team.scheduleTitle,
+            headerStyle: { backgroundColor: '#0F172A' },
+            headerTintColor: '#FFFFFF',
+            headerRight: () => <LanguageSwitch />,
+          }}
+        />
+        <Stack.Screen
+          name="PlayerDetail"
+          component={PlayerDetailScreen}
+          options={{
+            title: t.player.title,
             headerStyle: { backgroundColor: '#0F172A' },
             headerTintColor: '#FFFFFF',
             headerRight: () => <LanguageSwitch />,

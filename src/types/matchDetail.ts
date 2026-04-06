@@ -11,8 +11,10 @@ export type DetailLineup = {
 
 export type DetailPlayer = {
   name: string;
+  id?: string;
   avatar?: string;
   form?: string;
+  position?: string;
 };
 
 export type DetailTableRow = {

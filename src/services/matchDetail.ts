@@ -60,7 +60,9 @@ const parseStats = (payload: any, locale: Locale): MatchDetail['stats'] => {
   }));
 };
 
-const normalizePlayer = (input: any): { name: string; avatar?: string; form?: string } | null => {
+const normalizePlayer = (
+  input: any,
+): { name: string; id?: string; avatar?: string; form?: string; position?: string } | null => {
   const name = asText(
     input?.athlete?.displayName || input?.displayName || input?.fullName || input?.name,
     '',
@@ -78,8 +80,14 @@ const normalizePlayer = (input: any): { name: string; avatar?: string; form?: st
 
   return {
     name,
+    id: asText(input?.athlete?.id || input?.id, '').trim() || undefined,
     avatar: avatar || undefined,
     form: form || undefined,
+    position:
+      asText(
+        input?.athlete?.position?.displayName || input?.position?.displayName || input?.position?.name,
+        '',
+      ).trim() || undefined,
   };
 };
 

@@ -12,14 +12,15 @@ import {
 import { fetchTop5LiveScores } from '../services/livescore';
 import { RootStackParamList } from '../../App';
 import { LeagueMatches, MatchItem } from '../types/livescore';
+import { useI18n } from '../i18n';
 
 const REFRESH_INTERVAL_MS = 60_000;
 
-const toKickoff = (value: string): string => {
+const toKickoff = (value: string, dateLocale: string): string => {
   if (!value) return '--:--';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '--:--';
-  return date.toLocaleString('vi-VN', {
+  return date.toLocaleString(dateLocale, {
     hour: '2-digit',
     minute: '2-digit',
     day: '2-digit',
@@ -27,8 +28,8 @@ const toKickoff = (value: string): string => {
   });
 };
 
-const formatDayLabel = (value: Date): string =>
-  value.toLocaleDateString('vi-VN', {
+const formatDayLabel = (value: Date, dateLocale: string): string =>
+  value.toLocaleDateString(dateLocale, {
     weekday: 'short',
     day: '2-digit',
     month: '2-digit',
@@ -53,20 +54,21 @@ const buildCalendarDays = (anchor: Date): Date[] => {
   return list;
 };
 
-const statusBadgeStyle = (status: MatchItem['status']) => {
+const statusBadgeStyle = (status: MatchItem['status'], upcomingLabel: string) => {
   switch (status) {
     case 'LIVE':
       return { backgroundColor: '#DC2626', color: '#FFFFFF', label: 'LIVE' };
     case 'FT':
       return { backgroundColor: '#334155', color: '#FFFFFF', label: 'FT' };
     default:
-      return { backgroundColor: '#E2E8F0', color: '#0F172A', label: 'Sắp diễn ra' };
+      return { backgroundColor: '#E2E8F0', color: '#0F172A', label: upcomingLabel };
   }
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
+  const { t, locale, dateLocale } = useI18n();
   const [data, setData] = useState<LeagueMatches[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -83,15 +85,15 @@ export default function HomeScreen({ navigation }: Props) {
 
     setError(null);
     try {
-      const next = await fetchTop5LiveScores(targetDate);
+      const next = await fetchTop5LiveScores(targetDate, locale);
       setData(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Không tải được dữ liệu live score.');
+      setError(e instanceof Error ? e.message : t.home.loadErrorMessage);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [locale, t.home.loadErrorMessage]);
 
   useEffect(() => {
     void load(selectedDate);
@@ -115,7 +117,7 @@ export default function HomeScreen({ navigation }: Props) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#2563EB" />
-        <Text style={styles.statusText}>Đang tải live score...</Text>
+        <Text style={styles.statusText}>{t.home.loading}</Text>
       </View>
     );
   }
@@ -123,7 +125,7 @@ export default function HomeScreen({ navigation }: Props) {
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorTitle}>Lỗi tải dữ liệu</Text>
+        <Text style={styles.errorTitle}>{t.home.loadErrorTitle}</Text>
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
@@ -136,14 +138,16 @@ export default function HomeScreen({ navigation }: Props) {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(selectedDate, true)} />}
     >
       <View style={styles.headerCard}>
-        <Text style={styles.headerTitle}>Live Score: Top 5 + Cúp Anh</Text>
-        <Text style={styles.headerSub}>Ngày xem: {selectedDate.toLocaleDateString('vi-VN')} • LIVE: {liveCount}</Text>
+        <Text style={styles.headerTitle}>{t.home.headerTitle}</Text>
+        <Text style={styles.headerSub}>
+          {t.home.viewingDate}: {selectedDate.toLocaleDateString(dateLocale)} • {t.common.live}: {liveCount}
+        </Text>
       </View>
 
       <View style={styles.calendarWrap}>
         <View style={styles.calendarTopBar}>
           <Pressable style={styles.navBtn} onPress={() => setCalendarAnchor(addDays(calendarAnchor, -7))}>
-            <Text style={styles.navBtnText}>-7 ngày</Text>
+            <Text style={styles.navBtnText}>{t.home.prev7Days}</Text>
           </Pressable>
           <Pressable
             style={styles.todayBtn}
@@ -153,10 +157,10 @@ export default function HomeScreen({ navigation }: Props) {
               setSelectedDate(now);
             }}
           >
-            <Text style={styles.todayBtnText}>Hôm nay</Text>
+            <Text style={styles.todayBtnText}>{t.common.today}</Text>
           </Pressable>
           <Pressable style={styles.navBtn} onPress={() => setCalendarAnchor(addDays(calendarAnchor, 7))}>
-            <Text style={styles.navBtnText}>+7 ngày</Text>
+            <Text style={styles.navBtnText}>{t.home.next7Days}</Text>
           </Pressable>
         </View>
 
@@ -169,7 +173,9 @@ export default function HomeScreen({ navigation }: Props) {
                 style={[styles.dayPill, selected && styles.dayPillActive]}
                 onPress={() => setSelectedDate(day)}
               >
-                <Text style={[styles.dayText, selected && styles.dayTextActive]}>{formatDayLabel(day)}</Text>
+                <Text style={[styles.dayText, selected && styles.dayTextActive]}>
+                  {formatDayLabel(day, dateLocale)}
+                </Text>
               </Pressable>
             );
           })}
@@ -180,10 +186,10 @@ export default function HomeScreen({ navigation }: Props) {
         <View key={league.league} style={styles.leagueCard}>
           <Text style={styles.leagueTitle}>{league.title}</Text>
           {league.matches.length === 0 ? (
-            <Text style={styles.emptyText}>Không có trận trong ngày đã chọn.</Text>
+            <Text style={styles.emptyText}>{t.home.noMatchInDay}</Text>
           ) : (
             league.matches.map((match) => {
-              const badge = statusBadgeStyle(match.status);
+              const badge = statusBadgeStyle(match.status, t.common.upcoming);
               return (
                 <Pressable
                   key={match.id}
@@ -205,7 +211,7 @@ export default function HomeScreen({ navigation }: Props) {
                     <Text style={styles.team}>{match.homeName}</Text>
                     <Text style={styles.team}>{match.awayName}</Text>
                     <Text style={styles.kickoff}>
-                      {toKickoff(match.kickoff)} • {match.statusText}
+                      {toKickoff(match.kickoff, dateLocale)} • {match.statusText}
                     </Text>
                   </View>
 

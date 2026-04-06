@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { fetchMatchDetail } from '../services/matchDetail';
 import { MatchDetail } from '../types/matchDetail';
+import { useI18n } from '../i18n';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MatchDetail'>;
 
@@ -15,6 +16,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 );
 
 export default function MatchDetailScreen({ route, navigation }: Props) {
+  const { t, locale, dateLocale } = useI18n();
   const { eventId, league, homeName, awayName } = route.params;
   const [detail, setDetail] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,23 +31,23 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
       setLoading(true);
       setError(null);
       try {
-        const result = await fetchMatchDetail(league, eventId);
+        const result = await fetchMatchDetail(league, eventId, locale);
         setDetail(result);
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Không tải được chi tiết trận.');
+        setError(e instanceof Error ? e.message : t.detail.loadErrorMessage);
       } finally {
         setLoading(false);
       }
     };
 
     void load();
-  }, [eventId, league]);
+  }, [eventId, league, locale, t.detail.loadErrorMessage]);
 
   if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#1D4ED8" />
-        <Text style={styles.statusText}>Đang tải chi tiết trận...</Text>
+        <Text style={styles.statusText}>{t.detail.loading}</Text>
       </View>
     );
   }
@@ -53,8 +55,8 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
   if (error || !detail) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorTitle}>Không thể tải dữ liệu</Text>
-        <Text style={styles.errorText}>{error || 'No data'}</Text>
+        <Text style={styles.errorTitle}>{t.detail.loadErrorTitle}</Text>
+        <Text style={styles.errorText}>{error || t.common.noData}</Text>
       </View>
     );
   }
@@ -64,28 +66,30 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
       <View style={styles.scoreCard}>
         <Text style={styles.matchTitle}>{detail.homeName} vs {detail.awayName}</Text>
         <Text style={styles.scoreLine}>{detail.homeScore} - {detail.awayScore}</Text>
-        <Text style={styles.meta}>{detail.status || '--'} {detail.kickoff ? `• ${new Date(detail.kickoff).toLocaleString('vi-VN')}` : ''}</Text>
+        <Text style={styles.meta}>
+          {detail.status || '--'} {detail.kickoff ? `• ${new Date(detail.kickoff).toLocaleString(dateLocale)}` : ''}
+        </Text>
       </View>
 
-      <Section title="Sân đấu">
-        <Text style={styles.bodyText}>{detail.venue || 'Chưa có dữ liệu sân đấu'}</Text>
+      <Section title={t.detail.sectionVenue}>
+        <Text style={styles.bodyText}>{detail.venue || t.detail.venueMissing}</Text>
       </Section>
 
-      <Section title="Summary">
+      <Section title={t.detail.sectionSummary}>
         {detail.summary.map((line, idx) => (
           <Text key={`${line}-${idx}`} style={styles.bodyText}>• {line}</Text>
         ))}
       </Section>
 
-      <Section title="H2H">
+      <Section title={t.detail.sectionH2H}>
         {detail.h2h.map((line, idx) => (
           <Text key={`${line}-${idx}`} style={styles.bodyText}>• {line}</Text>
         ))}
       </Section>
 
-      <Section title="Stats">
+      <Section title={t.detail.sectionStats}>
         {detail.stats.length === 0 ? (
-          <Text style={styles.muted}>Chưa có dữ liệu stats.</Text>
+          <Text style={styles.muted}>{t.detail.statsMissing}</Text>
         ) : (
           detail.stats.map((row) => (
             <View key={row.label} style={styles.rowBetween}>
@@ -97,28 +101,30 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
         )}
       </Section>
 
-      <Section title="Line up">
+      <Section title={t.detail.sectionLineup}>
         {detail.lineups.length === 0 ? (
-          <Text style={styles.muted}>Chưa có dữ liệu đội hình.</Text>
+          <Text style={styles.muted}>{t.detail.lineupMissing}</Text>
         ) : (
           detail.lineups.map((lu) => (
             <View key={lu.team} style={styles.lineupCard}>
               <Text style={styles.lineupTeam}>{lu.team}</Text>
-              <Text style={styles.bodyText}>{lu.players.join(', ') || 'Chưa có danh sách cầu thủ'}</Text>
+              <Text style={styles.bodyText}>{lu.players.join(', ') || t.detail.lineupPlayersMissing}</Text>
             </View>
           ))
         )}
       </Section>
 
-      <Section title="Table">
+      <Section title={t.detail.sectionTable}>
         {detail.table.length === 0 ? (
-          <Text style={styles.muted}>Chưa có dữ liệu bảng xếp hạng.</Text>
+          <Text style={styles.muted}>{t.detail.tableMissing}</Text>
         ) : (
           detail.table.map((row, idx) => (
             <View key={`${row.team}-${idx}`} style={styles.rowBetween}>
               <Text style={styles.tableRank}>{row.rank || '-'}</Text>
               <Text style={styles.tableTeam}>{row.team}</Text>
-              <Text style={styles.tablePts}>P: {row.played || '-'} | Pts: {row.points || '-'}</Text>
+              <Text style={styles.tablePts}>
+                {t.detail.playedLabel}: {row.played || '-'} | {t.detail.pointsLabel}: {row.points || '-'}
+              </Text>
             </View>
           ))
         )}

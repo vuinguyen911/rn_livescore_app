@@ -1,4 +1,5 @@
 import { MatchDetail } from '../types/matchDetail';
+import { Locale, translations } from '../i18n/translations';
 
 const summaryUrl = (league: string, eventId: string) =>
   `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/summary?event=${eventId}`;
@@ -8,7 +9,29 @@ const asText = (value: unknown, fallback = ''): string => {
   return String(value);
 };
 
-const parseStats = (payload: any): MatchDetail['stats'] => {
+const translateStatLabel = (label: string, locale: Locale): string => {
+  const key = label.trim().toLowerCase().replace(/\s+/g, '');
+  const map: Record<string, keyof (typeof translations)['vi']['statLabel']> = {
+    possession: 'possessionPct',
+    possessionpct: 'possessionPct',
+    shotstotal: 'shotsTotal',
+    totalshots: 'shotsTotal',
+    shotsontarget: 'shotsOnTarget',
+    shotsontargettotal: 'shotsOnTarget',
+    foulscommitted: 'foulsCommitted',
+    yellowcards: 'yellowCards',
+    redcards: 'redCards',
+    offsides: 'offsides',
+    cornerkicks: 'cornerKicks',
+    saves: 'saves',
+    passpct: 'passPct',
+    tackles: 'tackles',
+  };
+  const mapped = map[key];
+  return mapped ? translations[locale].statLabel[mapped] : label;
+};
+
+const parseStats = (payload: any, locale: Locale): MatchDetail['stats'] => {
   const teams = payload?.boxscore?.teams || [];
   if (teams.length < 2) return [];
 
@@ -29,7 +52,7 @@ const parseStats = (payload: any): MatchDetail['stats'] => {
   });
 
   return Array.from(map.entries()).map(([label, value]) => ({
-    label,
+    label: translateStatLabel(label, locale),
     home: value.home || '-',
     away: value.away || '-',
   }));
@@ -55,14 +78,15 @@ const extractRosterPlayers = (roster: any): string[] => {
   return names;
 };
 
-const parseLineups = (payload: any): MatchDetail['lineups'] => {
+const parseLineups = (payload: any, locale: Locale): MatchDetail['lineups'] => {
+  const t = translations[locale];
   const apiLineups = payload?.lineups || [];
 
   if (Array.isArray(apiLineups) && apiLineups.length > 0) {
     return apiLineups.map((item: any) => {
       const team = asText(
         item?.team?.displayName || item?.team?.shortDisplayName || item?.team?.name,
-        'Đội bóng',
+        t.detail.unknownTeam,
       );
 
       const players = (item?.formation?.athletes || item?.athletes || [])
@@ -74,7 +98,7 @@ const parseLineups = (payload: any): MatchDetail['lineups'] => {
 
       return {
         team,
-        players: players.length > 0 ? players : ['Chưa có danh sách đội hình từ API.'],
+        players: players.length > 0 ? players : [t.detail.lineupPlayersMissing],
       };
     });
   }
@@ -82,11 +106,11 @@ const parseLineups = (payload: any): MatchDetail['lineups'] => {
   const rosters = payload?.rosters || [];
   if (Array.isArray(rosters) && rosters.length > 0) {
     return rosters.map((roster: any) => {
-      const team = asText(roster?.team?.displayName || roster?.team?.name, 'Đội bóng');
+      const team = asText(roster?.team?.displayName || roster?.team?.name, t.detail.unknownTeam);
       const players = extractRosterPlayers(roster);
       return {
         team,
-        players: players.length > 0 ? players.slice(0, 22) : ['Chưa công bố đội hình.'],
+        players: players.length > 0 ? players.slice(0, 22) : [t.detail.lineupMissing],
       };
     });
   }
@@ -124,7 +148,8 @@ const parseTable = (payload: any): MatchDetail['table'] => {
   return rows.slice(0, 20);
 };
 
-const parseH2H = (payload: any): string[] => {
+const parseH2H = (payload: any, locale: Locale): string[] => {
+  const t = translations[locale];
   const blocks = payload?.headToHeadGames || payload?.headToHead?.events || payload?.headToHead;
 
   if (Array.isArray(blocks) && blocks.length > 0) {
@@ -134,13 +159,22 @@ const parseH2H = (payload: any): string[] => {
       .slice(0, 8);
   }
 
-  return ['Chưa có dữ liệu H2H từ nguồn API.'];
+  return [t.detail.h2hMissing];
 };
 
-export const fetchMatchDetail = async (league: string, eventId: string): Promise<MatchDetail> => {
+export const fetchMatchDetail = async (
+  league: string,
+  eventId: string,
+  locale: Locale,
+): Promise<MatchDetail> => {
+  const t = translations[locale];
   const response = await fetch(summaryUrl(league, eventId));
   if (!response.ok) {
-    throw new Error(`Cannot fetch match detail (${response.status})`);
+    throw new Error(
+      locale === 'vi'
+        ? `Không thể tải chi tiết trận (${response.status})`
+        : `Cannot fetch match detail (${response.status})`,
+    );
   }
 
   const payload: any = await response.json();
@@ -158,20 +192,20 @@ export const fetchMatchDetail = async (league: string, eventId: string): Promise
   return {
     eventId,
     league,
-    homeName: asText(home?.team?.displayName, 'Home'),
-    awayName: asText(away?.team?.displayName, 'Away'),
+    homeName: asText(home?.team?.displayName, locale === 'vi' ? 'Đội nhà' : 'Home'),
+    awayName: asText(away?.team?.displayName, locale === 'vi' ? 'Đội khách' : 'Away'),
     homeScore: asText(home?.score, '0'),
     awayScore: asText(away?.score, '0'),
     kickoff: asText(payload?.header?.competitions?.[0]?.date, ''),
     status: asText(headerComp?.status?.type?.shortDetail || headerComp?.status?.type?.detail, ''),
     venue: asText(
       payload?.gameInfo?.venue?.fullName || payload?.gameInfo?.venue?.address?.city,
-      'Chưa có dữ liệu sân đấu',
+      t.detail.venueMissing,
     ),
-    summary: summary.length ? summary : ['Chưa có dữ liệu tóm tắt.'],
-    h2h: parseH2H(payload),
-    stats: parseStats(payload),
-    lineups: parseLineups(payload),
+    summary: summary.length ? summary : [t.detail.summaryMissing],
+    h2h: parseH2H(payload, locale),
+    stats: parseStats(payload, locale),
+    lineups: parseLineups(payload, locale),
     table: parseTable(payload),
   };
 };

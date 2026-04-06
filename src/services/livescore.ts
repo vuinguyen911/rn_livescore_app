@@ -1,15 +1,7 @@
 import { LeagueKey, LeagueMatches, MatchItem, MatchStatus } from '../types/livescore';
+import { Locale, translations } from '../i18n/translations';
 
-const LEAGUES: { key: LeagueKey; title: string }[] = [
-  { key: 'eng.1', title: 'Premier League' },
-  { key: 'esp.1', title: 'LaLiga' },
-  { key: 'ger.1', title: 'Bundesliga' },
-  { key: 'eng.fa', title: 'FA Cup' },
-  { key: 'eng.league_cup', title: 'League Cup' },
-  { key: 'eng.2', title: 'Championship' },
-  { key: 'ita.1', title: 'Serie A' },
-  { key: 'fra.1', title: 'Ligue 1' },
-];
+const LEAGUES: LeagueKey[] = ['eng.1', 'esp.1', 'ger.1', 'eng.fa', 'eng.league_cup', 'eng.2', 'ita.1', 'fra.1'];
 
 const formatApiDate = (date: Date): string => {
   const y = date.getFullYear();
@@ -26,16 +18,20 @@ const asNumber = (value: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const parseStatus = (rawStatus: unknown): { status: MatchStatus; statusText: string; minute?: string } => {
+const parseStatus = (
+  rawStatus: unknown,
+  locale: Locale,
+): { status: MatchStatus; statusText: string; minute?: string } => {
   const statusData = (rawStatus as { type?: { state?: string; detail?: string; shortDetail?: string } }) || {};
   const state = statusData.type?.state || 'pre';
   const detail = statusData.type?.shortDetail || statusData.type?.detail || '';
+  const t = translations[locale];
 
   if (state === 'in') {
     const minute = detail.match(/\d+'/)?.[0];
     return {
       status: 'LIVE',
-      statusText: detail || 'LIVE',
+      statusText: detail || t.common.live,
       minute,
     };
   }
@@ -43,17 +39,22 @@ const parseStatus = (rawStatus: unknown): { status: MatchStatus; statusText: str
   if (state === 'post') {
     return {
       status: 'FT',
-      statusText: detail || 'FT',
+      statusText: detail || t.common.ft,
     };
   }
 
   return {
     status: 'UPCOMING',
-    statusText: detail || 'Sắp diễn ra',
+    statusText: detail || t.common.upcoming,
   };
 };
 
-const parseEvent = (league: LeagueKey, leagueName: string, event: Record<string, unknown>): MatchItem | null => {
+const parseEvent = (
+  league: LeagueKey,
+  leagueName: string,
+  event: Record<string, unknown>,
+  locale: Locale,
+): MatchItem | null => {
   const competition = (event.competitions as Record<string, unknown>[] | undefined)?.[0];
   if (!competition) {
     return null;
@@ -67,7 +68,7 @@ const parseEvent = (league: LeagueKey, leagueName: string, event: Record<string,
     return null;
   }
 
-  const parsedStatus = parseStatus(competition.status);
+  const parsedStatus = parseStatus(competition.status, locale);
 
   return {
     id: String(event.id || `${league}-${competition.id || Math.random()}`),
@@ -77,19 +78,29 @@ const parseEvent = (league: LeagueKey, leagueName: string, event: Record<string,
     status: parsedStatus.status,
     statusText: parsedStatus.statusText,
     minute: parsedStatus.minute,
-    homeName: String((home.team as Record<string, unknown> | undefined)?.displayName || 'Home'),
-    awayName: String((away.team as Record<string, unknown> | undefined)?.displayName || 'Away'),
+    homeName: String(
+      (home.team as Record<string, unknown> | undefined)?.displayName || (locale === 'vi' ? 'Đội nhà' : 'Home'),
+    ),
+    awayName: String(
+      (away.team as Record<string, unknown> | undefined)?.displayName || (locale === 'vi' ? 'Đội khách' : 'Away'),
+    ),
     homeScore: asNumber(home.score),
     awayScore: asNumber(away.score),
   };
 };
 
-export const fetchTop5LiveScores = async (targetDate: Date): Promise<LeagueMatches[]> => {
+export const fetchTop5LiveScores = async (targetDate: Date, locale: Locale): Promise<LeagueMatches[]> => {
+  const t = translations[locale];
   const leagueData = await Promise.all(
-    LEAGUES.map(async ({ key, title }) => {
+    LEAGUES.map(async (key) => {
+      const title = t.league[key];
       const response = await fetch(SCOREBOARD_URL(key, targetDate));
       if (!response.ok) {
-        throw new Error(`Cannot fetch ${title} (${response.status})`);
+        throw new Error(
+          locale === 'vi'
+            ? `Không thể tải ${title} (${response.status})`
+            : `Cannot fetch ${title} (${response.status})`,
+        );
       }
 
       const payload = (await response.json()) as {
@@ -97,7 +108,7 @@ export const fetchTop5LiveScores = async (targetDate: Date): Promise<LeagueMatch
       };
 
       const matches = (payload.events || [])
-        .map((event) => parseEvent(key, title, event))
+        .map((event) => parseEvent(key, title, event, locale))
         .filter((match): match is MatchItem => Boolean(match))
         .sort((a, b) => {
           if (a.status === 'LIVE' && b.status !== 'LIVE') return -1;

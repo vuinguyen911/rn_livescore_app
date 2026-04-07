@@ -2,15 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { MatchItem } from '../types/livescore';
 import { FavoriteTeam } from './favorites';
-
-const SCHEDULED_MAP_KEY = 'scheduled_notifications_v1';
+import { STORAGE_KEYS } from '../config/storage';
 const OFFSETS_MS = [3 * 24 * 60 * 60 * 1000, 24 * 60 * 60 * 1000, 12 * 60 * 60 * 1000, 60 * 60 * 1000];
 
 type ScheduledMap = Record<string, string>;
 
 const readScheduledMap = async (): Promise<ScheduledMap> => {
   try {
-    const raw = await AsyncStorage.getItem(SCHEDULED_MAP_KEY);
+    const raw = await AsyncStorage.getItem(STORAGE_KEYS.scheduledNotifications);
     if (!raw) return {};
     return JSON.parse(raw) as ScheduledMap;
   } catch {
@@ -19,7 +18,7 @@ const readScheduledMap = async (): Promise<ScheduledMap> => {
 };
 
 const saveScheduledMap = async (value: ScheduledMap) =>
-  AsyncStorage.setItem(SCHEDULED_MAP_KEY, JSON.stringify(value));
+  AsyncStorage.setItem(STORAGE_KEYS.scheduledNotifications, JSON.stringify(value));
 
 const makeLeadText = (offset: number, locale: 'vi' | 'en') => {
   if (offset === OFFSETS_MS[0]) return locale === 'vi' ? '3 ngày nữa' : 'in 3 days';
@@ -94,4 +93,3 @@ export const syncFavoriteMatchNotifications = async (
 
   await saveScheduledMap(nextMap);
 };
-

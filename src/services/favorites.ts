@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LeagueKey } from '../types/livescore';
-
-const FAVORITES_KEY = 'favorite_teams_v1';
+import { STORAGE_KEYS } from '../config/storage';
 
 export type FavoriteTeam = {
   id: string;
@@ -12,7 +11,7 @@ export type FavoriteTeam = {
 
 export const getFavoriteTeams = async (): Promise<FavoriteTeam[]> => {
   try {
-    const raw = await AsyncStorage.getItem(FAVORITES_KEY);
+    const raw = await AsyncStorage.getItem(STORAGE_KEYS.favoriteTeams);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as FavoriteTeam[];
     return Array.isArray(parsed) ? parsed : [];
@@ -22,7 +21,7 @@ export const getFavoriteTeams = async (): Promise<FavoriteTeam[]> => {
 };
 
 export const saveFavoriteTeams = async (teams: FavoriteTeam[]): Promise<void> => {
-  await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(teams));
+  await AsyncStorage.setItem(STORAGE_KEYS.favoriteTeams, JSON.stringify(teams));
 };
 
 export const toggleFavoriteTeam = async (team: FavoriteTeam): Promise<FavoriteTeam[]> => {
@@ -32,4 +31,3 @@ export const toggleFavoriteTeam = async (team: FavoriteTeam): Promise<FavoriteTe
   await saveFavoriteTeams(next);
   return next;
 };
-

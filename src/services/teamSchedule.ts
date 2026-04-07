@@ -1,8 +1,8 @@
 import { Locale } from '../i18n/translations';
 import { TeamFixture } from '../types/teamSchedule';
 import { getFreshCache, readCache, writeCache } from './cache';
-
-const TEAM_SCHEDULE_TTL_MS = 10 * 60 * 1000;
+import { CACHE_TTL } from '../config/storage';
+import { API_ENDPOINTS } from '../config/api';
 
 const asText = (value: unknown, fallback = '') => {
   if (value === null || value === undefined) return fallback;
@@ -34,8 +34,8 @@ const parseEvent = (event: any): TeamFixture | null => {
 
 const fetchTeamScheduleRaw = async (league: string, teamId: string) => {
   const endpoints = [
-    `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/teams/${teamId}/schedule`,
-    `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/teams/${teamId}`,
+    API_ENDPOINTS.teamSchedule(league, teamId),
+    API_ENDPOINTS.teamDetail(league, teamId),
   ];
 
   for (const endpoint of endpoints) {
@@ -57,7 +57,7 @@ export const fetchTeamUpcomingSchedule = async (
   locale: Locale,
 ): Promise<TeamFixture[]> => {
   const cacheKey = `team_schedule:${league}:${teamId}:${locale}`;
-  const fresh = await getFreshCache<TeamFixture[]>(cacheKey, TEAM_SCHEDULE_TTL_MS);
+  const fresh = await getFreshCache<TeamFixture[]>(cacheKey, CACHE_TTL.teamSchedule);
   if (fresh) return fresh;
 
   try {
@@ -80,4 +80,3 @@ export const fetchTeamUpcomingSchedule = async (
     return [];
   }
 };
-

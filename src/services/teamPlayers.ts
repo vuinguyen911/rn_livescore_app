@@ -1,8 +1,8 @@
 import { Locale } from '../i18n/translations';
 import { TeamPlayer } from '../types/teamPlayers';
 import { getFreshCache, readCache, writeCache } from './cache';
-
-const TEAM_PLAYERS_CACHE_TTL_MS = 15 * 60 * 1000;
+import { CACHE_TTL } from '../config/storage';
+import { API_ENDPOINTS } from '../config/api';
 
 const asText = (value: unknown, fallback = '') => {
   if (value === null || value === undefined) return fallback;
@@ -61,8 +61,8 @@ const parsePlayersFromPayload = (payload: any): TeamPlayer[] => {
 
 const fetchRawTeamPlayers = async (league: string, teamId: string) => {
   const endpoints = [
-    `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/teams/${teamId}/roster`,
-    `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/teams/${teamId}`,
+    API_ENDPOINTS.teamRoster(league, teamId),
+    API_ENDPOINTS.teamDetail(league, teamId),
   ];
 
   for (const endpoint of endpoints) {
@@ -82,7 +82,7 @@ export const fetchTeamPlayersWithInjuries = async (
   locale: Locale,
 ): Promise<TeamPlayer[]> => {
   const cacheKey = `team_players:${league}:${teamId}:${locale}`;
-  const fresh = await getFreshCache<TeamPlayer[]>(cacheKey, TEAM_PLAYERS_CACHE_TTL_MS);
+  const fresh = await getFreshCache<TeamPlayer[]>(cacheKey, CACHE_TTL.teamPlayers);
   if (fresh) return fresh;
 
   try {
@@ -94,4 +94,3 @@ export const fetchTeamPlayersWithInjuries = async (
     return stale?.data || [];
   }
 };
-

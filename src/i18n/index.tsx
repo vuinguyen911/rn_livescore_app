@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Locale, translations } from './translations';
+import { STORAGE_KEYS } from '../config/storage';
 
 type Dictionary = (typeof translations)[Locale];
 export type TimeZoneOption = 'Asia/Ho_Chi_Minh' | 'Asia/Tokyo';
-const TIMEZONE_KEY = 'timezone_option_v1';
 
 type I18nContextValue = {
   locale: Locale;
@@ -24,7 +24,7 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const load = async () => {
       try {
-        const raw = await AsyncStorage.getItem(TIMEZONE_KEY);
+        const raw = await AsyncStorage.getItem(STORAGE_KEYS.timezoneOption);
         if (raw === 'Asia/Ho_Chi_Minh' || raw === 'Asia/Tokyo') {
           setTimeZoneState(raw);
         }
@@ -37,7 +37,7 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setTimeZone = (next: TimeZoneOption) => {
     setTimeZoneState(next);
-    void AsyncStorage.setItem(TIMEZONE_KEY, next);
+    void AsyncStorage.setItem(STORAGE_KEYS.timezoneOption, next);
   };
 
   const value = useMemo<I18nContextValue>(

@@ -1,8 +1,8 @@
 import { Locale } from '../i18n/translations';
 import { PlayerDetail } from '../types/playerDetail';
 import { getFreshCache, readCache, writeCache } from './cache';
-
-const PLAYER_CACHE_TTL_MS = 30 * 60 * 1000;
+import { CACHE_TTL } from '../config/storage';
+import { API_ENDPOINTS } from '../config/api';
 
 const asText = (value: unknown, fallback = '') => {
   if (value === null || value === undefined) return fallback;
@@ -55,12 +55,10 @@ const parsePlayerPayload = (payload: any, fallback: PlayerDetail): PlayerDetail 
 const fetchPlayerRaw = async (league: string, playerId?: string, name?: string) => {
   const endpoints: string[] = [];
   if (playerId) {
-    endpoints.push(`https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/athletes/${playerId}`);
+    endpoints.push(API_ENDPOINTS.athleteDetail(league, playerId));
   }
   if (name) {
-    endpoints.push(
-      `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/athletes?search=${encodeURIComponent(name)}`,
-    );
+    endpoints.push(API_ENDPOINTS.athleteSearch(league, name));
   }
 
   for (const endpoint of endpoints) {
@@ -86,7 +84,7 @@ export const fetchPlayerDetail = async (
   fallback: PlayerDetail,
 ): Promise<PlayerDetail> => {
   const cacheKey = `player:${league}:${fallback.id || fallback.name}:${locale}`;
-  const fresh = await getFreshCache<PlayerDetail>(cacheKey, PLAYER_CACHE_TTL_MS);
+  const fresh = await getFreshCache<PlayerDetail>(cacheKey, CACHE_TTL.playerDetail);
   if (fresh) return fresh;
 
   try {
@@ -99,4 +97,3 @@ export const fetchPlayerDetail = async (
     return stale?.data || fallback;
   }
 };
-

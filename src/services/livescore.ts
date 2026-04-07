@@ -1,6 +1,8 @@
 import { LeagueKey, LeagueMatches, MatchItem, MatchStatus } from '../types/livescore';
 import { Locale, translations } from '../i18n/translations';
 import { getFreshCache, readCache, writeCache } from './cache';
+import { CACHE_TTL } from '../config/storage';
+import { API_ENDPOINTS } from '../config/api';
 
 export const AVAILABLE_LEAGUES: LeagueKey[] = [
   'uefa.champions',
@@ -23,8 +25,7 @@ const formatApiDate = (date: Date): string => {
 };
 
 const SCOREBOARD_URL = (league: LeagueKey, date: Date) =>
-  `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/scoreboard?dates=${formatApiDate(date)}`;
-const LIVE_SCORE_CACHE_TTL_MS = 2 * 60 * 1000;
+  API_ENDPOINTS.scoreboard(league, formatApiDate(date));
 
 const asNumber = (value: unknown): number => {
   const n = Number(value ?? 0);
@@ -122,7 +123,7 @@ export const fetchTop5LiveScores = async (
     activeLeagues.map(async (key) => {
       const title = t.league[key];
       const cacheKey = `livescore:${key}:${formatApiDate(targetDate)}:${locale}`;
-      const fresh = await getFreshCache<LeagueMatches>(cacheKey, LIVE_SCORE_CACHE_TTL_MS);
+      const fresh = await getFreshCache<LeagueMatches>(cacheKey, CACHE_TTL.liveScore);
       if (fresh) return fresh;
 
       try {

@@ -1,10 +1,10 @@
 import { MatchDetail } from '../types/matchDetail';
 import { Locale, translations } from '../i18n/translations';
 import { getFreshCache, readCache, writeCache } from './cache';
+import { CACHE_TTL } from '../config/storage';
+import { API_ENDPOINTS } from '../config/api';
 
-const summaryUrl = (league: string, eventId: string) =>
-  `https://site.api.espn.com/apis/site/v2/sports/soccer/${league}/summary?event=${eventId}`;
-const MATCH_DETAIL_CACHE_TTL_MS = 5 * 60 * 1000;
+const summaryUrl = (league: string, eventId: string) => API_ENDPOINTS.matchSummary(league, eventId);
 
 const asText = (value: unknown, fallback = ''): string => {
   if (value === null || value === undefined) return fallback;
@@ -212,7 +212,7 @@ export const fetchMatchDetail = async (
 ): Promise<MatchDetail> => {
   const t = translations[locale];
   const cacheKey = `match_detail:${league}:${eventId}:${locale}:${timeZone}`;
-  const fresh = await getFreshCache<MatchDetail>(cacheKey, MATCH_DETAIL_CACHE_TTL_MS);
+  const fresh = await getFreshCache<MatchDetail>(cacheKey, CACHE_TTL.matchDetail);
   if (fresh) return fresh;
 
   try {

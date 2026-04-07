@@ -1,7 +1,8 @@
 import { XMLParser } from 'fast-xml-parser';
 import { RssItem } from '../types/rss';
+import { API_CONFIG } from '../config/api';
 
-const RSS_URL = 'https://vnexpress.net/rss/the-thao.rss';
+const RSS_URL = API_CONFIG.rss.sports;
 
 const parser = new XMLParser({
   ignoreAttributes: false,

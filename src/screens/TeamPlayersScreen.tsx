@@ -13,6 +13,7 @@ export default function TeamPlayersScreen({ route, navigation }: Props) {
   const { t, locale } = useI18n();
   const [loading, setLoading] = useState(true);
   const [players, setPlayers] = useState<TeamPlayer[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     navigation.setOptions({ title: teamName });
@@ -21,12 +22,19 @@ export default function TeamPlayersScreen({ route, navigation }: Props) {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const next = await fetchTeamPlayersWithInjuries(league, teamId, locale);
-      setPlayers(next);
-      setLoading(false);
+      setError(null);
+      try {
+        const next = await fetchTeamPlayersWithInjuries(league, teamId, locale);
+        setPlayers(next);
+      } catch {
+        setError(t.team.noPlayers);
+        setPlayers([]);
+      } finally {
+        setLoading(false);
+      }
     };
     void load();
-  }, [league, teamId, locale]);
+  }, [league, teamId, locale, t.team.noPlayers]);
 
   const injuredCount = useMemo(() => players.filter((p) => p.injured).length, [players]);
 
@@ -40,6 +48,7 @@ export default function TeamPlayersScreen({ route, navigation }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {error ? <Text style={styles.empty}>{error}</Text> : null}
       <View style={styles.headerCard}>
         <Text style={styles.headerTitle}>{t.team.playersTitle}</Text>
         <Text style={styles.headerSub}>

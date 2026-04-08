@@ -3,6 +3,7 @@ import { Locale, translations } from '../i18n/translations';
 import { getFreshCache, readCache, writeCache } from './cache';
 import { CACHE_TTL } from '../config/storage';
 import { API_ENDPOINTS } from '../config/api';
+import { safeToLocaleString } from '../utils/dateTime';
 
 const summaryUrl = (league: string, eventId: string) => API_ENDPOINTS.matchSummary(league, eventId);
 
@@ -12,9 +13,7 @@ const asText = (value: unknown, fallback = ''): string => {
 };
 
 const formatKickoffSummary = (kickoff: string, locale: Locale, timeZone: string): string => {
-  const date = new Date(kickoff);
-  if (Number.isNaN(date.getTime())) return kickoff || '-';
-  return date.toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-US', {
+  return safeToLocaleString(kickoff, locale === 'vi' ? 'vi-VN' : 'en-US', {
     weekday: 'short',
     day: '2-digit',
     month: '2-digit',

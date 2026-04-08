@@ -28,19 +28,27 @@ const makeLeadText = (offset: number, locale: 'vi' | 'en') => {
 };
 
 export const ensureNotificationPermissions = async () => {
-  const settings = await Notifications.getPermissionsAsync();
-  if (settings.granted || settings.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL) return true;
-  const req = await Notifications.requestPermissionsAsync();
-  return !!req.granted;
+  try {
+    const settings = await Notifications.getPermissionsAsync();
+    if (settings.granted || settings.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL) return true;
+    const req = await Notifications.requestPermissionsAsync();
+    return !!req.granted;
+  } catch {
+    return false;
+  }
 };
 
 export const configureNotifications = async () => {
-  await Notifications.setNotificationChannelAsync('match-reminders', {
-    name: 'Match reminders',
-    importance: Notifications.AndroidImportance.HIGH,
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#1D4ED8',
-  });
+  try {
+    await Notifications.setNotificationChannelAsync('match-reminders', {
+      name: 'Match reminders',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#1D4ED8',
+    });
+  } catch {
+    // ignore notification channel setup failures to prevent app crash
+  }
 };
 
 export const syncFavoriteMatchNotifications = async (
@@ -48,48 +56,52 @@ export const syncFavoriteMatchNotifications = async (
   favorites: FavoriteTeam[],
   locale: 'vi' | 'en',
 ) => {
-  if (favorites.length === 0) return;
-  const allowed = await ensureNotificationPermissions();
-  if (!allowed) return;
+  try {
+    if (favorites.length === 0) return;
+    const allowed = await ensureNotificationPermissions();
+    if (!allowed) return;
 
-  const favoriteIds = new Set(favorites.map((item) => item.id));
-  const upcoming = matches.filter((match) => {
-    const kickoff = new Date(match.kickoff).getTime();
-    if (!Number.isFinite(kickoff) || kickoff <= Date.now()) return false;
-    return favoriteIds.has(match.homeTeamId) || favoriteIds.has(match.awayTeamId);
-  });
+    const favoriteIds = new Set(favorites.map((item) => item.id));
+    const upcoming = matches.filter((match) => {
+      const kickoff = new Date(match.kickoff).getTime();
+      if (!Number.isFinite(kickoff) || kickoff <= Date.now()) return false;
+      return favoriteIds.has(match.homeTeamId) || favoriteIds.has(match.awayTeamId);
+    });
 
-  if (upcoming.length === 0) return;
+    if (upcoming.length === 0) return;
 
-  const map = await readScheduledMap();
-  const nextMap: ScheduledMap = { ...map };
+    const map = await readScheduledMap();
+    const nextMap: ScheduledMap = { ...map };
 
-  for (const match of upcoming) {
-    const kickoff = new Date(match.kickoff).getTime();
-    for (const offset of OFFSETS_MS) {
-      const fireAt = kickoff - offset;
-      if (fireAt <= Date.now()) continue;
-      const uniqueKey = `${match.id}:${offset}`;
-      if (nextMap[uniqueKey]) continue;
+    for (const match of upcoming) {
+      const kickoff = new Date(match.kickoff).getTime();
+      for (const offset of OFFSETS_MS) {
+        const fireAt = kickoff - offset;
+        if (fireAt <= Date.now()) continue;
+        const uniqueKey = `${match.id}:${offset}`;
+        if (nextMap[uniqueKey]) continue;
 
-      const id = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: locale === 'vi' ? 'Nhắc lịch trận đấu' : 'Match reminder',
-          body:
-            locale === 'vi'
-              ? `${match.homeName} vs ${match.awayName} sẽ diễn ra ${makeLeadText(offset, locale)}.`
-              : `${match.homeName} vs ${match.awayName} starts ${makeLeadText(offset, locale)}.`,
-          sound: true,
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: new Date(fireAt),
-          channelId: 'match-reminders',
-        },
-      });
-      nextMap[uniqueKey] = id;
+        const id = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: locale === 'vi' ? 'Nhắc lịch trận đấu' : 'Match reminder',
+            body:
+              locale === 'vi'
+                ? `${match.homeName} vs ${match.awayName} sẽ diễn ra ${makeLeadText(offset, locale)}.`
+                : `${match.homeName} vs ${match.awayName} starts ${makeLeadText(offset, locale)}.`,
+            sound: true,
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: new Date(fireAt),
+            channelId: 'match-reminders',
+          },
+        });
+        nextMap[uniqueKey] = id;
+      }
     }
-  }
 
-  await saveScheduledMap(nextMap);
+    await saveScheduledMap(nextMap);
+  } catch {
+    // ignore notification sync failures to keep app stable
+  }
 };

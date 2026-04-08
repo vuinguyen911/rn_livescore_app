@@ -16,15 +16,14 @@ import { LeagueKey, LeagueMatches, MatchItem } from '../types/livescore';
 import { useI18n } from '../i18n';
 import { FavoriteTeam, getFavoriteTeams, toggleFavoriteTeam } from '../services/favorites';
 import { syncFavoriteMatchNotifications } from '../services/notifications';
+import { safeToLocaleDateString, safeToLocaleString } from '../utils/dateTime';
 
 const REFRESH_INTERVAL_MS = 60_000;
 const DEFAULT_LEAGUES: LeagueKey[] = ['uefa.champions', 'eng.1', 'esp.1', 'ger.1', 'ita.1'];
 
 const toKickoff = (value: string, dateLocale: string, timeZone: string): string => {
-  if (!value) return '--:--';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '--:--';
-  return date.toLocaleString(dateLocale, {
+  if (!value) return '--';
+  return safeToLocaleString(value, dateLocale, {
     hour: '2-digit',
     minute: '2-digit',
     day: '2-digit',
@@ -34,7 +33,7 @@ const toKickoff = (value: string, dateLocale: string, timeZone: string): string 
 };
 
 const formatDayLabel = (value: Date, dateLocale: string, timeZone: string): string =>
-  value.toLocaleDateString(dateLocale, {
+  safeToLocaleDateString(value, dateLocale, {
     weekday: 'short',
     day: '2-digit',
     month: '2-digit',
@@ -171,7 +170,8 @@ export default function HomeScreen({ navigation }: Props) {
       <View style={styles.headerCard}>
         <Text style={styles.headerTitle}>{t.home.headerTitle}</Text>
         <Text style={styles.headerSub}>
-          {t.home.viewingDate}: {selectedDate.toLocaleDateString(dateLocale, { timeZone })} • {t.common.live}: {liveCount}
+          {t.home.viewingDate}: {safeToLocaleDateString(selectedDate, dateLocale, { timeZone })} • {t.common.live}:{' '}
+          {liveCount}
         </Text>
       </View>
 

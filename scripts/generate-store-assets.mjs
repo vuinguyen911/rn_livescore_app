@@ -9,6 +9,9 @@ const SEVEN_INCH_DIR = path.join(BASE_DIR, 'sevenInchScreenshots');
 const TEN_INCH_DIR = path.join(BASE_DIR, 'tenInchScreenshots');
 const FEATURE_GRAPHIC_PATH = path.join(BASE_DIR, 'featureGraphic.png');
 const ICON_PATH = path.join(BASE_DIR, 'icon.png');
+const APP_ICON_PATH = path.resolve('assets/icon.png');
+const isVietnamese = language.toLowerCase().startsWith('vi');
+const appDisplayName = isVietnamese ? 'Truc tiep ket qua bong da' : 'Live Football Results';
 
 const escapeXml = (value) =>
   value
@@ -45,7 +48,9 @@ const screenSvg = ({ width, height, match, league, status, index }) => {
   <text x="${cardX + 64}" y="${cardY + 113}" font-size="30" font-family="Arial, sans-serif" fill="#1D4ED8" font-weight="700">${escapeXml(
     league,
   )}</text>
-  <text x="${cardX + 40}" y="${cardY + 225}" font-size="56" font-family="Arial, sans-serif" fill="#0F172A" font-weight="800">UVI LiveScore</text>
+  <text x="${cardX + 40}" y="${cardY + 225}" font-size="48" font-family="Arial, sans-serif" fill="#0F172A" font-weight="800">${escapeXml(
+    appDisplayName,
+  )}</text>
   <text x="${cardX + 40}" y="${cardY + 305}" font-size="40" font-family="Arial, sans-serif" fill="#0F172A" font-weight="700">${escapeXml(
     match,
   )}</text>
@@ -74,28 +79,19 @@ const featureGraphicSvg = () => `
     </linearGradient>
   </defs>
   <rect width="1024" height="500" fill="url(#fbg)"/>
-  <text x="70" y="120" font-size="62" font-family="Arial, sans-serif" fill="#FFFFFF" font-weight="800">UVI LiveScore</text>
+  <text x="70" y="120" font-size="52" font-family="Arial, sans-serif" fill="#FFFFFF" font-weight="800">${escapeXml(
+    appDisplayName,
+  )}</text>
   <foreignObject x="70" y="170" width="900" height="220">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, sans-serif; color:#DBEAFE; font-size:42px; line-height:1.3; font-weight:600;">Top 5 leagues, live minute by minute updates, and full match details.</div>
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, sans-serif; color:#DBEAFE; font-size:34px; line-height:1.3; font-weight:600;">${escapeXml(
+      isVietnamese
+        ? 'Ti so truc tiep, lich thi dau, thong tin chi tiet tran dau.'
+        : 'Live scores, fixtures, and full match details.',
+    )}</div>
   </foreignObject>
-  <text x="70" y="450" font-size="28" font-family="Arial, sans-serif" fill="#BFDBFE">Live scores, fixtures and match insights in one place.</text>
-</svg>
-`;
-
-const iconSvg = `
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0F172A"/>
-      <stop offset="100%" stop-color="#2563EB"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="url(#ibg)"/>
-  <circle cx="256" cy="240" r="136" fill="#F8FAFC"/>
-  <circle cx="256" cy="240" r="98" fill="#1D4ED8"/>
-  <circle cx="256" cy="240" r="50" fill="#F8FAFC"/>
-  <rect x="106" y="370" width="300" height="72" rx="24" fill="#F8FAFC"/>
-  <text x="166" y="417" font-size="36" font-family="Arial, sans-serif" fill="#1D4ED8" font-weight="800">LIVE</text>
+  <text x="70" y="450" font-size="24" font-family="Arial, sans-serif" fill="#BFDBFE">${escapeXml(
+    isVietnamese ? 'Theo doi bong da moi ngay trong mot ung dung.' : 'Follow football every day in one app.',
+  )}</text>
 </svg>
 `;
 
@@ -146,7 +142,8 @@ const main = async () => {
 
   await sharp(Buffer.from(featureGraphicSvg())).png().toFile(FEATURE_GRAPHIC_PATH);
 
-  await sharp(Buffer.from(iconSvg)).png().toFile(ICON_PATH);
+  // Force Play Store icon to match the in-app icon exactly.
+  await sharp(APP_ICON_PATH).resize(512, 512).png().toFile(ICON_PATH);
 
   console.log(`Generated store graphics in store-assets/android/${language}/images`);
 };

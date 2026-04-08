@@ -5,6 +5,7 @@ import { RootStackParamList } from '../../App';
 import { TeamFixture } from '../types/teamSchedule';
 import { fetchTeamUpcomingSchedule } from '../services/teamSchedule';
 import { useI18n } from '../i18n';
+import { safeToLocaleString } from '../utils/dateTime';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TeamSchedule'>;
 
@@ -13,6 +14,7 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
   const { t, locale, dateLocale, timeZone } = useI18n();
   const [fixtures, setFixtures] = useState<TeamFixture[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     navigation.setOptions({ title: teamName });
@@ -21,12 +23,19 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const next = await fetchTeamUpcomingSchedule(league, teamId, locale);
-      setFixtures(next);
-      setLoading(false);
+      setError(null);
+      try {
+        const next = await fetchTeamUpcomingSchedule(league, teamId, locale);
+        setFixtures(next);
+      } catch {
+        setError(t.team.noUpcoming);
+        setFixtures([]);
+      } finally {
+        setLoading(false);
+      }
     };
     void load();
-  }, [teamId, league, locale]);
+  }, [teamId, league, locale, t.team.noUpcoming]);
 
   if (loading) {
     return (
@@ -39,6 +48,7 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{t.team.upcomingMatches}</Text>
+      {error ? <Text style={styles.empty}>{error}</Text> : null}
       {fixtures.length === 0 ? (
         <Text style={styles.empty}>{t.team.noUpcoming}</Text>
       ) : (
@@ -46,8 +56,7 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
           <View key={item.id} style={styles.card}>
             <Text style={styles.match}>{item.homeName} vs {item.awayName}</Text>
             <Text style={styles.meta}>
-              {item.kickoff ? new Date(item.kickoff).toLocaleString(dateLocale, { timeZone }) : '--'} •{' '}
-              {item.status || '--'}
+              {item.kickoff ? safeToLocaleString(item.kickoff, dateLocale, { timeZone }) : '--'} • {item.status || '--'}
             </Text>
             {item.homeScore || item.awayScore ? (
               <Text style={styles.score}>{item.homeScore || '-'} - {item.awayScore || '-'}</Text>

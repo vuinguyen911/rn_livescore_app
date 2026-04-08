@@ -102,15 +102,19 @@ const TimeZoneSwitch = () => {
 const AppNavigator = () => {
   const { t } = useI18n();
   useEffect(() => {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
-    void configureNotifications();
+    try {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+          shouldShowBanner: true,
+          shouldShowList: true,
+        }),
+      });
+      void configureNotifications();
+    } catch {
+      // prevent startup crash when notification module fails in runtime
+    }
   }, []);
 
   return (

@@ -5,6 +5,7 @@ import { RootStackParamList } from '../../App';
 import { fetchMatchDetail } from '../services/matchDetail';
 import { MatchDetail } from '../types/matchDetail';
 import { useI18n } from '../i18n';
+import { safeToLocaleString } from '../utils/dateTime';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MatchDetail'>;
 
@@ -67,8 +68,7 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
         <Text style={styles.matchTitle}>{detail.homeName} vs {detail.awayName}</Text>
         <Text style={styles.scoreLine}>{detail.homeScore} - {detail.awayScore}</Text>
         <Text style={styles.meta}>
-          {detail.status || '--'}{' '}
-          {detail.kickoff ? `• ${new Date(detail.kickoff).toLocaleString(dateLocale, { timeZone })}` : ''}
+          {detail.status || '--'} {detail.kickoff ? `• ${safeToLocaleString(detail.kickoff, dateLocale, { timeZone })}` : ''}
         </Text>
       </View>
 

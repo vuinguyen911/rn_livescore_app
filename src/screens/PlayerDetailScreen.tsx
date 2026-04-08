@@ -19,6 +19,7 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
   const { league, playerId, playerName, avatar, form, position } = route.params;
   const { t, locale } = useI18n();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<PlayerDetail>({
     id: playerId,
     name: playerName,
@@ -34,6 +35,7 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setError(null);
       const fallback: PlayerDetail = {
         id: playerId,
         name: playerName,
@@ -41,12 +43,18 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
         form,
         position,
       };
-      const next = await fetchPlayerDetail(league, locale, fallback);
-      setDetail(next);
-      setLoading(false);
+      try {
+        const next = await fetchPlayerDetail(league, locale, fallback);
+        setDetail(next);
+      } catch {
+        setError(t.common.noData);
+        setDetail(fallback);
+      } finally {
+        setLoading(false);
+      }
     };
     void load();
-  }, [league, playerId, playerName, avatar, form, position, locale]);
+  }, [league, playerId, playerName, avatar, form, position, locale, t.common.noData]);
 
   if (loading) {
     return (
@@ -58,6 +66,7 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
       <View style={styles.header}>
         {detail.avatar ? <Image source={{ uri: detail.avatar }} style={styles.avatar} /> : null}
         <View style={styles.headerText}>
@@ -133,6 +142,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 12,
     gap: 8,
+  },
+  errorText: {
+    color: '#B91C1C',
+    fontSize: 13,
+    textAlign: 'center',
   },
   sectionTitle: {
     color: '#0F172A',

@@ -20,6 +20,55 @@ npm start
 npm run release:apk
 ```
 
+## Build Local Android (APK + AAB, không qua EAS)
+```bash
+npm run build:local:android
+```
+
+Lệnh này sẽ tự động tăng `versionCode` và đồng bộ `versionName` trước khi build.
+
+Artifact output:
+- `apk/local/app-release-<timestamp>.apk`
+- `apk/local/app-release-<timestamp>.aab`
+
+### Troubleshooting build local
+
+Lỗi `CXX1101 ... ndk/... did not have a source.properties file`:
+- Nguyên nhân: NDK bị tải lỗi hoặc thư mục NDK bị hỏng.
+- Script `build-local-android.sh` đã tự động:
+1. Xóa NDK hỏng `27.1.12297006`
+2. Cài lại `platforms;android-35`, `build-tools;35.0.0`, `ndk;27.1.12297006`
+
+Chạy lại:
+```bash
+npm run build:local:android
+```
+
+Nếu vẫn lỗi, chạy tay:
+```bash
+export ANDROID_SDK_ROOT="$HOME/Library/Android/sdk"
+yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses
+rm -rf "$ANDROID_SDK_ROOT/ndk/27.1.12297006"
+"$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
+  "platforms;android-35" "build-tools;35.0.0" "ndk;27.1.12297006"
+```
+
+Lỗi `Autolinking is not set up ...` hoặc `Could not get unknown property 'projectRoot' for extension 'expoGradle'`:
+- Nguyên nhân phổ biến: package Expo bị lệch SDK (ví dụ `expo@53` nhưng `expo-constants`/`expo-device`/`expo-notifications` ở nhánh `55`).
+- Fix:
+```bash
+npx expo install expo-constants expo-device expo-notifications
+npm run build:local:android
+```
+
+Lỗi `Could not find org.asyncstorage.shared_storage:storage-android:1.0.0`:
+- Nguyên nhân: `@react-native-async-storage/async-storage` lệch phiên bản với Expo SDK.
+- Fix:
+```bash
+npx expo install @react-native-async-storage/async-storage
+npm run build:local:android
+```
+
 ## Build Android production + submit
 ```bash
 npm run release:production

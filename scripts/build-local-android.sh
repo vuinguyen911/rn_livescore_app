@@ -129,6 +129,53 @@ else
   echo "[1/6] android/ exists -> skip prebuild"
 fi
 
+echo "[1.5/6] Configure release signing (upload keystore)"
+if [[ -f "$ROOT_DIR/.android-keystore.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/.android-keystore.env"
+  set +a
+fi
+
+for required_var in ANDROID_KEYSTORE_PATH ANDROID_KEY_ALIAS ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_PASSWORD; do
+  if [[ -z "${!required_var:-}" ]]; then
+    echo "Missing $required_var for release signing."
+    echo "Create .android-keystore.env via: npm run android:keygen"
+    exit 1
+  fi
+done
+
+KEYSTORE_PATH_RESOLVED="$ANDROID_KEYSTORE_PATH"
+if [[ "$KEYSTORE_PATH_RESOLVED" != /* ]]; then
+  KEYSTORE_PATH_RESOLVED="$ROOT_DIR/$KEYSTORE_PATH_RESOLVED"
+fi
+
+if [[ ! -f "$KEYSTORE_PATH_RESOLVED" ]]; then
+  echo "Keystore file not found: $KEYSTORE_PATH_RESOLVED"
+  exit 1
+fi
+
+mkdir -p android
+cat > android/keystore.properties <<EOF
+storeFile=$KEYSTORE_PATH_RESOLVED
+storePassword=$ANDROID_KEYSTORE_PASSWORD
+keyAlias=$ANDROID_KEY_ALIAS
+keyPassword=$ANDROID_KEY_PASSWORD
+EOF
+
+if command -v keytool >/dev/null 2>&1; then
+  ACTUAL_SHA1="$(keytool -list -v -keystore "$KEYSTORE_PATH_RESOLVED" -alias "$ANDROID_KEY_ALIAS" -storepass "$ANDROID_KEYSTORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" 2>/dev/null | awk '/SHA1:/{print $2; exit}')"
+  if [[ -n "$ACTUAL_SHA1" ]]; then
+    echo "Signing key SHA1: $ACTUAL_SHA1"
+  fi
+  if [[ -n "${ANDROID_EXPECTED_SHA1:-}" && -n "$ACTUAL_SHA1" && "$ACTUAL_SHA1" != "$ANDROID_EXPECTED_SHA1" ]]; then
+    echo "Signing key mismatch."
+    echo "Expected SHA1: $ANDROID_EXPECTED_SHA1"
+    echo "Actual SHA1:   $ACTUAL_SHA1"
+    exit 1
+  fi
+fi
+
 echo "[2/6] Write android/local.properties"
 mkdir -p android
 printf "sdk.dir=%s\n" "${SDK_PATH//\//\\/}" > android/local.properties

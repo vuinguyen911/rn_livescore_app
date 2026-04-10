@@ -2,7 +2,7 @@
   "expo": {
     "name": "Trực tiếp kết quả bóng đá",
     "slug": "uvi-livescore",
-    "version": "1.3.1",
+    "version": "1.3.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -25,7 +25,16 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.uviblog.livescore",
-      "versionCode": 2
+      "versionCode": 6,
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

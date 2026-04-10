@@ -26,10 +26,22 @@ npm run build:local:android
 ```
 
 Lệnh này sẽ tự động tăng `versionCode` và đồng bộ `versionName` trước khi build.
+Lệnh này cũng bắt buộc ký `release` bằng upload keystore từ `.android-keystore.env`.
 
 Artifact output:
 - `apk/local/app-release-<timestamp>.apk`
 - `apk/local/app-release-<timestamp>.aab`
+
+Nếu chưa có keystore:
+```bash
+npm run android:keygen
+```
+
+Tuỳ chọn kiểm tra đúng SHA1 trước khi build:
+```bash
+export ANDROID_EXPECTED_SHA1="B1:B7:03:59:EC:62:F0:24:79:3A:50:AA:1E:50:BB:34:AD:B8:63:7C"
+npm run build:local:android
+```
 
 ### Troubleshooting build local
 
@@ -73,6 +85,27 @@ npm run build:local:android
 ```bash
 npm run release:production
 ```
+
+## Generate Hình Ảnh Store
+
+Generate toàn bộ ảnh (EN + VI, gồm ảnh chính và extras):
+```bash
+npm run store:images:all
+```
+
+Tạo ảnh store mặc định (EN):
+```bash
+node scripts/gen-extra-store-images.cjs
+```
+
+Tạo ảnh store tiếng Việt (VI):
+```bash
+node scripts/gen-extra-store-images-vi.cjs
+```
+
+Output:
+- `store-assets/android/en-US/images/extras`
+- `store-assets/android/vi-VN/images/extras`
 
 ## Build iOS (iPhone)
 ```bash

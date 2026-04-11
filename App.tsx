@@ -46,10 +46,10 @@ const appTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#EEF2FF',
+    background: '#FFF5F5',
     card: '#FFFFFF',
-    text: '#0F172A',
-    primary: '#1D4ED8',
+    text: '#7F1D1D',
+    primary: '#DC2626',
     border: '#D1D5DB',
   },
 };
@@ -139,14 +139,14 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer theme={appTheme}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
+      <StatusBar barStyle="light-content" backgroundColor="#7F1D1D" />
       <Stack.Navigator>
         <Stack.Screen
           name="Home"
           component={HomeScreen}
           options={{
             title: t.app.homeTitle,
-            headerStyle: { backgroundColor: '#0F172A' },
+            headerStyle: { backgroundColor: '#7F1D1D' },
             headerTintColor: '#FFFFFF',
             headerLeft: () => <TimeZoneSwitch />,
             headerRight: () => <LanguageSwitch />,
@@ -157,7 +157,7 @@ const AppNavigator = () => {
           component={MatchDetailScreen}
           options={{
             title: t.app.matchDetailTitle,
-            headerStyle: { backgroundColor: '#0F172A' },
+            headerStyle: { backgroundColor: '#7F1D1D' },
             headerTintColor: '#FFFFFF',
             headerRight: () => <LanguageSwitch />,
           }}
@@ -167,7 +167,7 @@ const AppNavigator = () => {
           component={TeamScheduleScreen}
           options={{
             title: t.team.scheduleTitle,
-            headerStyle: { backgroundColor: '#0F172A' },
+            headerStyle: { backgroundColor: '#7F1D1D' },
             headerTintColor: '#FFFFFF',
             headerRight: () => <LanguageSwitch />,
           }}
@@ -177,7 +177,7 @@ const AppNavigator = () => {
           component={TeamPlayersScreen}
           options={{
             title: t.team.playersTitle,
-            headerStyle: { backgroundColor: '#0F172A' },
+            headerStyle: { backgroundColor: '#7F1D1D' },
             headerTintColor: '#FFFFFF',
             headerRight: () => <LanguageSwitch />,
           }}
@@ -187,7 +187,7 @@ const AppNavigator = () => {
           component={PlayerDetailScreen}
           options={{
             title: t.player.title,
-            headerStyle: { backgroundColor: '#0F172A' },
+            headerStyle: { backgroundColor: '#7F1D1D' },
             headerTintColor: '#FFFFFF',
             headerRight: () => <LanguageSwitch />,
           }}
@@ -215,22 +215,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 36,
     right: 0,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#7F1D1D',
     borderRadius: 8,
     paddingVertical: 4,
     minWidth: 132,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#7F1D1D',
   },
   langMenuItem: {
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
   langMenuItemActive: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#991B1B',
   },
   langMenuText: {
-    color: '#E2E8F0',
+    color: '#FECACA',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   langBtn: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#991B1B',
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   tzWrap: {
     flexDirection: 'row',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#991B1B',
     borderRadius: 4,
     padding: 2,
     marginRight: 8,
@@ -264,11 +264,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   tzText: {
-    color: '#CBD5E1',
+    color: '#FECACA',
     fontSize: 11,
     fontWeight: '700',
   },
   tzTextActive: {
-    color: '#0F172A',
+    color: '#7F1D1D',
   },
 });

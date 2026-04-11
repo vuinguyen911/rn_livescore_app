@@ -40,7 +40,7 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#1D4ED8" />
+        <ActivityIndicator size="large" color="#DC2626" />
       </View>
     );
   }
@@ -71,7 +71,7 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#FFF5F5',
   },
   content: {
     padding: 12,
@@ -85,10 +85,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#7F1D1D',
   },
   empty: {
-    color: '#475569',
+    color: '#9F1239',
     fontSize: 13,
   },
   card: {
@@ -96,20 +96,20 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#FECACA',
     gap: 4,
   },
   match: {
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontWeight: '700',
     fontSize: 14,
   },
   meta: {
-    color: '#64748B',
+    color: '#B91C1C',
     fontSize: 12,
   },
   score: {
-    color: '#1D4ED8',
+    color: '#DC2626',
     fontWeight: '800',
     fontSize: 18,
   },

@@ -47,7 +47,7 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#1D4ED8" />
+        <ActivityIndicator size="large" color="#DC2626" />
         <Text style={styles.statusText}>{t.detail.loading}</Text>
       </View>
     );
@@ -165,7 +165,7 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#FFF5F5',
   },
   content: {
     padding: 12,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   statusText: {
-    color: '#334155',
+    color: '#7F1D1D',
     fontSize: 15,
   },
   errorTitle: {
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scoreCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#7F1D1D',
     borderRadius: 4,
     padding: 14,
   },
@@ -203,13 +203,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   scoreLine: {
-    color: '#93C5FD',
+    color: '#FCA5A5',
     fontSize: 28,
     fontWeight: '800',
     marginTop: 6,
   },
   meta: {
-    color: '#BFDBFE',
+    color: '#FECACA',
     fontSize: 12,
     marginTop: 4,
   },
@@ -222,15 +222,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#7F1D1D',
   },
   bodyText: {
-    color: '#334155',
+    color: '#7F1D1D',
     fontSize: 13,
     lineHeight: 19,
   },
   muted: {
-    color: '#64748B',
+    color: '#B91C1C',
     fontSize: 13,
   },
   rowBetween: {
@@ -238,19 +238,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#FECACA',
     paddingVertical: 6,
   },
   statCell: {
     width: 70,
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontSize: 12,
     fontWeight: '700',
   },
   statLabel: {
     flex: 1,
     textAlign: 'center',
-    color: '#475569',
+    color: '#9F1239',
     fontWeight: '600',
   },
   statRight: {
@@ -258,18 +258,18 @@ const styles = StyleSheet.create({
   },
   lineupCard: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#FECACA',
     borderRadius: 4,
     padding: 10,
     gap: 6,
   },
   lineupTeam: {
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontSize: 14,
     fontWeight: '800',
   },
   predicted: {
-    color: '#1D4ED8',
+    color: '#DC2626',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -279,35 +279,35 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#FECACA',
   },
   playerAvatar: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#FECACA',
   },
   playerCol: {
     flex: 1,
   },
   playerForm: {
-    color: '#64748B',
+    color: '#B91C1C',
     fontSize: 11,
   },
   tableRank: {
     width: 32,
-    color: '#1E293B',
+    color: '#991B1B',
     fontWeight: '700',
     fontSize: 12,
   },
   tableTeam: {
     flex: 1,
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontWeight: '700',
     fontSize: 13,
   },
   tablePts: {
-    color: '#475569',
+    color: '#9F1239',
     fontSize: 12,
   },
 });

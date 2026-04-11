@@ -41,7 +41,7 @@ export default function TeamPlayersScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#1D4ED8" />
+        <ActivityIndicator size="large" color="#DC2626" />
       </View>
     );
   }
@@ -81,7 +81,7 @@ export default function TeamPlayersScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#FFF5F5',
   },
   content: {
     padding: 12,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#7F1D1D',
     borderRadius: 4,
     padding: 12,
   },
@@ -103,12 +103,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   headerSub: {
-    color: '#BFDBFE',
+    color: '#FECACA',
     fontSize: 12,
     marginTop: 4,
   },
   empty: {
-    color: '#475569',
+    color: '#9F1239',
     fontSize: 13,
   },
   playerRow: {
@@ -118,25 +118,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#FECACA',
     padding: 10,
   },
   avatar: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#FECACA',
   },
   playerInfo: {
     flex: 1,
   },
   playerName: {
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontSize: 14,
     fontWeight: '700',
   },
   meta: {
-    color: '#64748B',
+    color: '#B91C1C',
     fontSize: 12,
     marginTop: 2,
   },

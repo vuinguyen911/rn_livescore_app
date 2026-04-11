@@ -59,7 +59,7 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#1D4ED8" />
+        <ActivityIndicator size="large" color="#DC2626" />
       </View>
     );
   }
@@ -99,7 +99,7 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#FFF5F5',
   },
   content: {
     padding: 12,
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   header: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#7F1D1D',
     borderRadius: 4,
     padding: 12,
     flexDirection: 'row',
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#991B1B',
   },
   headerText: {
     flex: 1,
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   meta: {
-    color: '#BFDBFE',
+    color: '#FECACA',
     fontSize: 13,
     marginTop: 2,
   },
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sectionTitle: {
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontSize: 14,
     fontWeight: '800',
   },
@@ -158,16 +158,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#FECACA',
     paddingVertical: 6,
   },
   infoLabel: {
-    color: '#475569',
+    color: '#9F1239',
     fontSize: 12,
     fontWeight: '600',
   },
   infoValue: {
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontSize: 12,
     fontWeight: '700',
     flexShrink: 1,

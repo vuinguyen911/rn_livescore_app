@@ -64,7 +64,7 @@ const statusBadgeStyle = (status: MatchItem['status'], upcomingLabel: string) =>
     case 'LIVE':
       return { backgroundColor: '#DC2626', color: '#FFFFFF', label: 'LIVE' };
     case 'FT':
-      return { backgroundColor: '#334155', color: '#FFFFFF', label: 'FT' };
+      return { backgroundColor: '#7F1D1D', color: '#FFFFFF', label: 'FT' };
     default:
       return { backgroundColor: '#F97316', color: '#FFFFFF', label: upcomingLabel };
   }
@@ -150,7 +150,7 @@ export default function HomeScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#DC2626" />
         <Text style={styles.statusText}>{t.home.loading}</Text>
       </View>
     );
@@ -394,7 +394,7 @@ export default function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#FFF5F5',
   },
   content: {
     padding: 12,
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   statusText: {
-    color: '#334155',
+    color: '#7F1D1D',
     fontSize: 15,
   },
   errorTitle: {
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   headerCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#7F1D1D',
     borderRadius: 4,
     padding: 14,
   },
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   headerSub: {
-    color: '#BFDBFE',
+    color: '#FECACA',
     fontSize: 13,
     marginTop: 4,
   },
@@ -450,19 +450,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   selectBtn: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#FECACA',
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   selectBtnText: {
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontSize: 13,
     fontWeight: '700',
   },
   selectMenu: {
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#FECACA',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -473,10 +473,10 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#FECACA',
   },
   selectOptionText: {
-    color: '#1E293B',
+    color: '#991B1B',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -485,14 +485,14 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#94A3B8',
+    borderColor: '#FCA5A5',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
   },
   checkboxChecked: {
-    backgroundColor: '#1D4ED8',
-    borderColor: '#1D4ED8',
+    backgroundColor: '#DC2626',
+    borderColor: '#DC2626',
   },
   checkboxText: {
     color: '#FFFFFF',
@@ -506,18 +506,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   navBtn: {
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#FECACA',
     borderRadius: 4,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
   navBtnText: {
-    color: '#1E293B',
+    color: '#991B1B',
     fontSize: 12,
     fontWeight: '700',
   },
   todayBtn: {
-    backgroundColor: '#1D4ED8',
+    backgroundColor: '#DC2626',
     borderRadius: 4,
     paddingVertical: 6,
     paddingHorizontal: 14,
@@ -534,17 +534,17 @@ const styles = StyleSheet.create({
   dayPill: {
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderColor: '#FECACA',
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: '#F8FAFC',
   },
   dayPillActive: {
-    backgroundColor: '#1D4ED8',
-    borderColor: '#1D4ED8',
+    backgroundColor: '#DC2626',
+    borderColor: '#DC2626',
   },
   dayText: {
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -560,10 +560,10 @@ const styles = StyleSheet.create({
   leagueTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#7F1D1D',
   },
   emptyText: {
-    color: '#64748B',
+    color: '#B91C1C',
     fontSize: 13,
   },
   matchRow: {
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#FECACA',
     borderRadius: 4,
     padding: 10,
   },
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
   favoriteTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#7F1D1D',
   },
   favoriteRow: {
     gap: 8,
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: '#FEE2E2',
     borderRadius: 4,
   },
   favoriteLogo: {
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   favoriteChipText: {
-    color: '#1E3A8A',
+    color: '#991B1B',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   },
   team: {
     fontSize: 14,
-    color: '#0F172A',
+    color: '#7F1D1D',
     fontWeight: '700',
     textDecorationLine: 'underline',
   },
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
   },
   kickoff: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#B91C1C',
     marginTop: 2,
   },
   scoreCol: {
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
   score: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#7F1D1D',
     lineHeight: 22,
   },
 });

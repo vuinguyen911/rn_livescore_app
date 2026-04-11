@@ -46,18 +46,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: '#FFF5F5',
   },
   title: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#7F1D1D',
     textAlign: 'center',
   },
   subtitle: {
     marginTop: 8,
     fontSize: 14,
-    color: '#475569',
+    color: '#9F1239',
     textAlign: 'center',
   },
   button: {
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 4,
-    backgroundColor: '#1D4ED8',
+    backgroundColor: '#DC2626',
   },
   buttonText: {
     color: '#FFFFFF',

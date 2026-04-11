@@ -21,7 +21,11 @@ export const getFavoriteTeams = async (): Promise<FavoriteTeam[]> => {
 };
 
 export const saveFavoriteTeams = async (teams: FavoriteTeam[]): Promise<void> => {
-  await AsyncStorage.setItem(STORAGE_KEYS.favoriteTeams, JSON.stringify(teams));
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.favoriteTeams, JSON.stringify(teams));
+  } catch {
+    // ignore write errors and keep app responsive
+  }
 };
 
 export const toggleFavoriteTeam = async (team: FavoriteTeam): Promise<FavoriteTeam[]> => {

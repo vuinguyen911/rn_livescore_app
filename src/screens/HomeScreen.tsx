@@ -137,8 +137,12 @@ export default function HomeScreen({ navigation }: Props) {
 
   const handleToggleFavorite = useCallback(
     async (team: FavoriteTeam) => {
-      const next = await toggleFavoriteTeam(team);
-      setFavorites(next);
+      try {
+        const next = await toggleFavoriteTeam(team);
+        setFavorites(next);
+      } catch {
+        // prevent UI crash if storage write fails on some devices
+      }
     },
     [],
   );

@@ -35,6 +35,7 @@ const path = require('path');
 const root = process.cwd();
 const bundledPath = path.join(root, 'node_modules', 'expo', 'bundledNativeModules.json');
 const checks = [
+  'expo-asset',
   'expo-constants',
   'expo-device',
   'expo-notifications',
@@ -81,7 +82,7 @@ set -e
 if [[ "$ALIGNMENT_STATUS" -eq 42 ]]; then
   echo "Dependency versions are not aligned with current Expo SDK."
   echo "Run:"
-  echo "  npx expo install expo-constants expo-device expo-notifications @react-native-async-storage/async-storage"
+  echo "  npx expo install expo-asset expo-constants expo-device expo-notifications @react-native-async-storage/async-storage"
   echo "Then retry:"
   echo "  npm run build:local:android"
   exit 1
@@ -122,12 +123,8 @@ export ANDROID_SDK_ROOT="$SDK_PATH"
 export ANDROID_HOME="$SDK_PATH"
 echo "Using Android SDK: $SDK_PATH"
 
-if [[ ! -d android ]]; then
-  echo "[1/6] android/ missing -> running local prebuild"
-  CI=1 npx expo prebuild --platform android
-else
-  echo "[1/6] android/ exists -> skip prebuild"
-fi
+echo "[1/6] Sync android native modules with Expo prebuild"
+CI=1 npx expo prebuild --platform android --non-interactive
 
 echo "[1.5/6] Configure release signing (upload keystore)"
 if [[ -f "$ROOT_DIR/.android-keystore.env" ]]; then
@@ -137,7 +134,7 @@ if [[ -f "$ROOT_DIR/.android-keystore.env" ]]; then
   set +a
 fi
 
-for required_var in ANDROID_KEYSTORE_PATH ANDROID_KEY_ALIAS ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_PASSWORD; do
+for required_var in ANDROID_KEYSTORE_PATH ANDROID_KEY_ALIAS ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_PASSWORD ANDROID_EXPECTED_SHA1; do
   if [[ -z "${!required_var:-}" ]]; then
     echo "Missing $required_var for release signing."
     echo "Create .android-keystore.env via: npm run android:keygen"
@@ -163,17 +160,26 @@ keyAlias=$ANDROID_KEY_ALIAS
 keyPassword=$ANDROID_KEY_PASSWORD
 EOF
 
-if command -v keytool >/dev/null 2>&1; then
-  ACTUAL_SHA1="$(keytool -list -v -keystore "$KEYSTORE_PATH_RESOLVED" -alias "$ANDROID_KEY_ALIAS" -storepass "$ANDROID_KEYSTORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" 2>/dev/null | awk '/SHA1:/{print $2; exit}')"
-  if [[ -n "$ACTUAL_SHA1" ]]; then
-    echo "Signing key SHA1: $ACTUAL_SHA1"
-  fi
-  if [[ -n "${ANDROID_EXPECTED_SHA1:-}" && -n "$ACTUAL_SHA1" && "$ACTUAL_SHA1" != "$ANDROID_EXPECTED_SHA1" ]]; then
-    echo "Signing key mismatch."
-    echo "Expected SHA1: $ANDROID_EXPECTED_SHA1"
-    echo "Actual SHA1:   $ACTUAL_SHA1"
-    exit 1
-  fi
+if ! command -v keytool >/dev/null 2>&1; then
+  echo "keytool is required to verify signing key SHA1."
+  exit 1
+fi
+
+ACTUAL_SHA1="$(keytool -list -v -keystore "$KEYSTORE_PATH_RESOLVED" -alias "$ANDROID_KEY_ALIAS" -storepass "$ANDROID_KEYSTORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" 2>/dev/null | awk '/SHA1:/{print $2; exit}')"
+if [[ -z "$ACTUAL_SHA1" ]]; then
+  echo "Unable to read SHA1 from keystore alias: $ANDROID_KEY_ALIAS"
+  exit 1
+fi
+
+EXPECTED_SHA1_NORMALIZED="$(echo "$ANDROID_EXPECTED_SHA1" | tr '[:lower:]' '[:upper:]')"
+ACTUAL_SHA1_NORMALIZED="$(echo "$ACTUAL_SHA1" | tr '[:lower:]' '[:upper:]')"
+
+echo "Signing key SHA1: $ACTUAL_SHA1_NORMALIZED"
+if [[ "$ACTUAL_SHA1_NORMALIZED" != "$EXPECTED_SHA1_NORMALIZED" ]]; then
+  echo "Signing key mismatch."
+  echo "Expected SHA1: $EXPECTED_SHA1_NORMALIZED"
+  echo "Actual SHA1:   $ACTUAL_SHA1_NORMALIZED"
+  exit 1
 fi
 
 echo "[2/6] Write android/local.properties"

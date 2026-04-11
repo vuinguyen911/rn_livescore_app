@@ -37,7 +37,7 @@ Nếu chưa có keystore:
 npm run android:keygen
 ```
 
-Tuỳ chọn kiểm tra đúng SHA1 trước khi build:
+Thiết lập SHA1 bắt buộc trước khi build (script sẽ fail nếu lệch):
 ```bash
 export ANDROID_EXPECTED_SHA1="B1:B7:03:59:EC:62:F0:24:79:3A:50:AA:1E:50:BB:34:AD:B8:63:7C"
 npm run build:local:android
@@ -78,6 +78,14 @@ Lỗi `Could not find org.asyncstorage.shared_storage:storage-android:1.0.0`:
 - Fix:
 ```bash
 npx expo install @react-native-async-storage/async-storage
+npm run build:local:android
+```
+
+Lỗi `Cannot find native module 'ExpoAsset'`:
+- Nguyên nhân: native modules Android chưa sync với dependency hiện tại.
+- Fix:
+```bash
+npx expo install expo-asset
 npm run build:local:android
 ```
 

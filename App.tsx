@@ -11,6 +11,7 @@ import { I18nProvider, useI18n } from './src/i18n';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { configureNotifications } from './src/services/notifications';
+import AppErrorBoundary from './src/components/AppErrorBoundary';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -179,9 +180,11 @@ const AppNavigator = () => {
 
 export default function App() {
   return (
-    <I18nProvider>
-      <AppNavigator />
-    </I18nProvider>
+    <AppErrorBoundary>
+      <I18nProvider>
+        <AppNavigator />
+      </I18nProvider>
+    </AppErrorBoundary>
   );
 }
 

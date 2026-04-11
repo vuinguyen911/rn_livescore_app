@@ -37,7 +37,9 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setTimeZone = (next: TimeZoneOption) => {
     setTimeZoneState(next);
-    void AsyncStorage.setItem(STORAGE_KEYS.timezoneOption, next);
+    AsyncStorage.setItem(STORAGE_KEYS.timezoneOption, next).catch(() => {
+      // ignore storage write failures to avoid unhandled promise rejection
+    });
   };
 
   const value = useMemo<I18nContextValue>(

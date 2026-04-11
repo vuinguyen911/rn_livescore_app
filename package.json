@@ -23,7 +23,7 @@
     "release:apk": "bash scripts/build-release-apk.sh",
     "release:ios": "bash scripts/build-ios.sh",
     "android:keygen": "bash scripts/gen-android-keystore.sh",
-    "deps:install:all": "npm install && npx expo install expo-constants expo-device expo-notifications @react-native-async-storage/async-storage @expo/metro-runtime react-native-safe-area-context react-native-screens react-native-webview",
+    "deps:install:all": "npm install && npx expo install expo-asset expo-constants expo-device expo-notifications @react-native-async-storage/async-storage @expo/metro-runtime react-native-safe-area-context react-native-screens react-native-webview",
     "bump:version": "node scripts/bump-app-version.mjs",
     "ios": "expo run:ios",
     "build:local:android": "bash scripts/build-local-android.sh"
@@ -34,6 +34,7 @@
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
     "expo": "~53.0.0",
+    "expo-asset": "~11.1.7",
     "expo-constants": "~17.1.8",
     "expo-device": "~7.1.4",
     "expo-notifications": "~0.31.5",

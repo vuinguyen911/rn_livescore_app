@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { MatchItem } from '../types/livescore';
 import { FavoriteTeam } from './favorites';
 import { STORAGE_KEYS } from '../config/storage';
+import { Locale } from '../i18n/translations';
 const OFFSETS_MS = [3 * 24 * 60 * 60 * 1000, 24 * 60 * 60 * 1000, 12 * 60 * 60 * 1000, 60 * 60 * 1000];
 
 type ScheduledMap = Record<string, string>;
@@ -20,11 +21,11 @@ const readScheduledMap = async (): Promise<ScheduledMap> => {
 const saveScheduledMap = async (value: ScheduledMap) =>
   AsyncStorage.setItem(STORAGE_KEYS.scheduledNotifications, JSON.stringify(value));
 
-const makeLeadText = (offset: number, locale: 'vi' | 'en') => {
-  if (offset === OFFSETS_MS[0]) return locale === 'vi' ? '3 ngày nữa' : 'in 3 days';
-  if (offset === OFFSETS_MS[1]) return locale === 'vi' ? '1 ngày nữa' : 'in 1 day';
-  if (offset === OFFSETS_MS[2]) return locale === 'vi' ? '12 giờ nữa' : 'in 12 hours';
-  return locale === 'vi' ? '1 giờ nữa' : 'in 1 hour';
+const makeLeadText = (offset: number, locale: Locale) => {
+  if (offset === OFFSETS_MS[0]) return locale === 'vi' ? '3 ngày nữa' : '3日後';
+  if (offset === OFFSETS_MS[1]) return locale === 'vi' ? '1 ngày nữa' : '1日後';
+  if (offset === OFFSETS_MS[2]) return locale === 'vi' ? '12 giờ nữa' : '12時間後';
+  return locale === 'vi' ? '1 giờ nữa' : '1時間後';
 };
 
 export const ensureNotificationPermissions = async () => {
@@ -54,7 +55,7 @@ export const configureNotifications = async () => {
 export const syncFavoriteMatchNotifications = async (
   matches: MatchItem[],
   favorites: FavoriteTeam[],
-  locale: 'vi' | 'en',
+  locale: Locale,
 ) => {
   try {
     if (favorites.length === 0) return;
@@ -83,11 +84,11 @@ export const syncFavoriteMatchNotifications = async (
 
         const id = await Notifications.scheduleNotificationAsync({
           content: {
-            title: locale === 'vi' ? 'Nhắc lịch trận đấu' : 'Match reminder',
+            title: locale === 'vi' ? 'Nhắc lịch trận đấu' : '試合リマインダー',
             body:
               locale === 'vi'
                 ? `${match.homeName} vs ${match.awayName} sẽ diễn ra ${makeLeadText(offset, locale)}.`
-                : `${match.homeName} vs ${match.awayName} starts ${makeLeadText(offset, locale)}.`,
+                : `${match.homeName} vs ${match.awayName} は${makeLeadText(offset, locale)}に開始します。`,
             sound: true,
           },
           trigger: {

@@ -49,7 +49,7 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
       timeZone,
       setTimeZone,
       t: translations[locale],
-      dateLocale: locale === 'vi' ? 'vi-VN' : 'en-US',
+      dateLocale: locale === 'vi' ? 'vi-VN' : 'ja-JP',
     }),
     [locale, timeZone],
   );

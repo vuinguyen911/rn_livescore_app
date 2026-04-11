@@ -13,7 +13,7 @@ const asText = (value: unknown, fallback = ''): string => {
 };
 
 const formatKickoffSummary = (kickoff: string, locale: Locale, timeZone: string): string => {
-  return safeToLocaleString(kickoff, locale === 'vi' ? 'vi-VN' : 'en-US', {
+  return safeToLocaleString(kickoff, locale === 'vi' ? 'vi-VN' : 'ja-JP', {
     weekday: 'short',
     day: '2-digit',
     month: '2-digit',

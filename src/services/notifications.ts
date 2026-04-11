@@ -45,7 +45,7 @@ export const configureNotifications = async () => {
       name: 'Match reminders',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#DC2626',
+      lightColor: '#2563EB',
     });
   } catch {
     // ignore notification channel setup failures to prevent app crash

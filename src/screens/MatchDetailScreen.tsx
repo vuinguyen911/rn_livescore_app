@@ -47,7 +47,7 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#DC2626" />
+        <ActivityIndicator size="large" color="#2563EB" />
         <Text style={styles.statusText}>{t.detail.loading}</Text>
       </View>
     );
@@ -165,11 +165,11 @@ export default function MatchDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#F5F8FF',
   },
   content: {
-    padding: 12,
-    gap: 12,
+    padding: 16,
+    gap: 14,
   },
   centered: {
     flex: 1,
@@ -179,23 +179,28 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   statusText: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 15,
   },
   errorTitle: {
-    color: '#991B1B',
+    color: '#1D4ED8',
     fontSize: 18,
     fontWeight: '700',
   },
   errorText: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 14,
     textAlign: 'center',
   },
   scoreCard: {
-    backgroundColor: '#7F1D1D',
-    borderRadius: 4,
-    padding: 14,
+    backgroundColor: '#1E3A8A',
+    borderRadius: 22,
+    padding: 18,
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
   },
   matchTitle: {
     color: '#FFFFFF',
@@ -203,34 +208,41 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   scoreLine: {
-    color: '#FCA5A5',
+    color: '#93C5FD',
     fontSize: 28,
     fontWeight: '800',
     marginTop: 6,
   },
   meta: {
-    color: '#FECACA',
+    color: '#D6E4FF',
     fontSize: 12,
     marginTop: 4,
   },
   sectionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 4,
-    padding: 12,
+    borderRadius: 18,
+    padding: 14,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#EAF2FF',
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#7F1D1D',
+    color: '#1E3A8A',
   },
   bodyText: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 13,
     lineHeight: 19,
   },
   muted: {
-    color: '#B91C1C',
+    color: '#64748B',
     fontSize: 13,
   },
   rowBetween: {
@@ -238,19 +250,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#FECACA',
+    borderBottomColor: '#D6E4FF',
     paddingVertical: 6,
   },
   statCell: {
     width: 70,
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 12,
     fontWeight: '700',
   },
   statLabel: {
     flex: 1,
     textAlign: 'center',
-    color: '#9F1239',
+    color: '#475569',
     fontWeight: '600',
   },
   statRight: {
@@ -258,18 +270,18 @@ const styles = StyleSheet.create({
   },
   lineupCard: {
     borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 4,
+    borderColor: '#D6E4FF',
+    borderRadius: 12,
     padding: 10,
     gap: 6,
   },
   lineupTeam: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 14,
     fontWeight: '800',
   },
   predicted: {
-    color: '#DC2626',
+    color: '#2563EB',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -279,35 +291,35 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#FECACA',
+    borderBottomColor: '#D6E4FF',
   },
   playerAvatar: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#FECACA',
+    backgroundColor: '#D6E4FF',
   },
   playerCol: {
     flex: 1,
   },
   playerForm: {
-    color: '#B91C1C',
+    color: '#64748B',
     fontSize: 11,
   },
   tableRank: {
     width: 32,
-    color: '#991B1B',
+    color: '#1D4ED8',
     fontWeight: '700',
     fontSize: 12,
   },
   tableTeam: {
     flex: 1,
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontWeight: '700',
     fontSize: 13,
   },
   tablePts: {
-    color: '#9F1239',
+    color: '#475569',
     fontSize: 12,
   },
 });

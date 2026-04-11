@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   ActivityIndicator,
   Image,
@@ -17,6 +18,8 @@ import { useI18n } from '../i18n';
 import { FavoriteTeam, getFavoriteTeams, toggleFavoriteTeam } from '../services/favorites';
 import { syncFavoriteMatchNotifications } from '../services/notifications';
 import { safeToLocaleDateString, safeToLocaleString } from '../utils/dateTime';
+import AnimatedScalePressable from '../components/AnimatedScalePressable';
+import { colors, radius, shadows, spacing } from '../theme/tokens';
 
 const REFRESH_INTERVAL_MS = 60_000;
 const DEFAULT_LEAGUES: LeagueKey[] = ['uefa.champions', 'eng.1', 'esp.1', 'ger.1', 'ita.1'];
@@ -62,17 +65,16 @@ const buildCalendarDays = (anchor: Date): Date[] => {
 const statusBadgeStyle = (status: MatchItem['status'], upcomingLabel: string) => {
   switch (status) {
     case 'LIVE':
-      return { backgroundColor: '#DC2626', color: '#FFFFFF', label: 'LIVE' };
+      return { backgroundColor: '#2563EB', color: '#FFFFFF', label: 'LIVE' };
     case 'FT':
-      return { backgroundColor: '#7F1D1D', color: '#FFFFFF', label: 'FT' };
+      return { backgroundColor: '#1E3A8A', color: '#FFFFFF', label: 'FT' };
     default:
       return { backgroundColor: '#F97316', color: '#FFFFFF', label: upcomingLabel };
   }
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
-
-export default function HomeScreen({ navigation }: Props) {
+export default function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t, locale, dateLocale, timeZone } = useI18n();
   const [data, setData] = useState<LeagueMatches[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,7 +152,7 @@ export default function HomeScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#DC2626" />
+        <ActivityIndicator size="large" color="#2563EB" />
         <Text style={styles.statusText}>{t.home.loading}</Text>
       </View>
     );
@@ -177,10 +179,35 @@ export default function HomeScreen({ navigation }: Props) {
           {t.home.viewingDate}: {safeToLocaleDateString(selectedDate, dateLocale, { timeZone })} • {t.common.live}:{' '}
           {liveCount}
         </Text>
+        <View style={styles.metricRow}>
+          <View style={styles.metricChip}>
+            <Text style={styles.metricLabel}>{t.common.live}</Text>
+            <Text style={styles.metricValue}>{liveCount}</Text>
+          </View>
+          <View style={styles.metricChip}>
+            <Text style={styles.metricLabel}>{t.home.selectedCount}</Text>
+            <Text style={styles.metricValue}>{selectedLeagues.length}</Text>
+          </View>
+          <View style={styles.metricChip}>
+            <Text style={styles.metricLabel}>Fav</Text>
+            <Text style={styles.metricValue}>{favorites.length}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.quickFilterCard}>
+        <Text style={styles.quickFilterLabel}>{t.home.leagueSelectLabel}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickFilterRow}>
+          {selectedLeagues.map((leagueKey) => (
+            <View key={leagueKey} style={styles.quickFilterChip}>
+              <Text style={styles.quickFilterChipText}>{t.league[leagueKey]}</Text>
+            </View>
+          ))}
+        </ScrollView>
       </View>
 
       <View style={styles.selectCard}>
-        <Pressable
+        <AnimatedScalePressable
           style={styles.selectBtn}
           onPress={() => setLeagueMenuOpen((prev) => !prev)}
           accessibilityLabel={t.home.leagueSelectOpen}
@@ -188,7 +215,7 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.selectBtnText}>
             {t.home.leagueSelectLabel} • {t.home.selectedCount}: {selectedLeagues.length}
           </Text>
-        </Pressable>
+        </AnimatedScalePressable>
 
         {leagueMenuOpen && (
           <View style={styles.selectMenu}>
@@ -226,7 +253,7 @@ export default function HomeScreen({ navigation }: Props) {
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.favoriteRow}>
             {favorites.map((team) => (
-              <Pressable
+              <AnimatedScalePressable
                 key={team.id}
                 style={styles.favoriteChip}
                 accessibilityLabel={t.home.openTeamSchedule}
@@ -240,7 +267,7 @@ export default function HomeScreen({ navigation }: Props) {
               >
                 {team.logo ? <Image source={{ uri: team.logo }} style={styles.favoriteLogo} /> : null}
                 <Text style={styles.favoriteChipText}>{team.name}</Text>
-              </Pressable>
+              </AnimatedScalePressable>
             ))}
           </ScrollView>
         )}
@@ -270,7 +297,7 @@ export default function HomeScreen({ navigation }: Props) {
           {calendarDays.map((day) => {
             const selected = sameDay(day, selectedDate);
             return (
-              <Pressable
+              <AnimatedScalePressable
                 key={day.toISOString()}
                 style={[styles.dayPill, selected && styles.dayPillActive]}
                 onPress={() => setSelectedDate(day)}
@@ -278,7 +305,7 @@ export default function HomeScreen({ navigation }: Props) {
                 <Text style={[styles.dayText, selected && styles.dayTextActive]}>
                   {formatDayLabel(day, dateLocale, timeZone)}
                 </Text>
-              </Pressable>
+              </AnimatedScalePressable>
             );
           })}
         </ScrollView>
@@ -286,14 +313,19 @@ export default function HomeScreen({ navigation }: Props) {
 
       {data.map((league) => (
         <View key={league.league} style={styles.leagueCard}>
-          <Text style={styles.leagueTitle}>{league.title}</Text>
+          <View style={styles.leagueHead}>
+            <Text style={styles.leagueTitle}>{league.title}</Text>
+            <View style={styles.leagueCountBadge}>
+              <Text style={styles.leagueCountText}>{league.matches.length}</Text>
+            </View>
+          </View>
           {league.matches.length === 0 ? (
             <Text style={styles.emptyText}>{t.home.noMatchInDay}</Text>
           ) : (
             league.matches.map((match) => {
               const badge = statusBadgeStyle(match.status, t.common.upcoming);
               return (
-                <Pressable
+                <AnimatedScalePressable
                   key={match.id}
                   style={styles.matchRow}
                   onPress={() =>
@@ -311,6 +343,7 @@ export default function HomeScreen({ navigation }: Props) {
 
                   <View style={styles.teamsCol}>
                     <View style={styles.teamLine}>
+                      {match.homeLogo ? <Image source={{ uri: match.homeLogo }} style={styles.teamLogo} /> : null}
                       <Pressable
                         onPress={() =>
                           navigation.navigate('TeamPlayers', {
@@ -342,6 +375,7 @@ export default function HomeScreen({ navigation }: Props) {
                       </Pressable>
                     </View>
                     <View style={styles.teamLine}>
+                      {match.awayLogo ? <Image source={{ uri: match.awayLogo }} style={styles.teamLogo} /> : null}
                       <Pressable
                         onPress={() =>
                           navigation.navigate('TeamPlayers', {
@@ -381,7 +415,7 @@ export default function HomeScreen({ navigation }: Props) {
                     <Text style={styles.score}>{match.homeScore}</Text>
                     <Text style={styles.score}>{match.awayScore}</Text>
                   </View>
-                </Pressable>
+                </AnimatedScalePressable>
               );
             })
           )}
@@ -394,11 +428,11 @@ export default function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: colors.bg,
   },
   content: {
-    padding: 12,
-    gap: 12,
+    padding: spacing.lg,
+    gap: 14,
   },
   centered: {
     flex: 1,
@@ -407,24 +441,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   statusText: {
-    color: '#7F1D1D',
+    color: colors.text,
     fontSize: 15,
   },
   errorTitle: {
-    color: '#991B1B',
+    color: '#1D4ED8',
     fontSize: 18,
     fontWeight: '700',
   },
   errorText: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 14,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
   headerCard: {
-    backgroundColor: '#7F1D1D',
-    borderRadius: 4,
-    padding: 14,
+    backgroundColor: colors.primaryDark,
+    borderRadius: radius.xl,
+    padding: 18,
+    ...shadows.lg,
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -432,38 +467,99 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   headerSub: {
-    color: '#FECACA',
+    color: '#D6E4FF',
     fontSize: 13,
-    marginTop: 4,
+    marginTop: 6,
+  },
+  metricRow: {
+    marginTop: 14,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  metricChip: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  metricLabel: {
+    color: '#D6E4FF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  metricValue: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 2,
   },
   calendarWrap: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     gap: 10,
+    borderWidth: 1,
+    borderColor: colors.surfaceSoft,
+    ...shadows.md,
+  },
+  quickFilterCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceSoft,
+  },
+  quickFilterLabel: {
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  quickFilterRow: {
+    gap: 8,
+    paddingRight: 4,
+  },
+  quickFilterChip: {
+    paddingVertical: 7,
+    paddingHorizontal: 11,
+    borderRadius: 999,
+    backgroundColor: '#EAF2FF',
+    borderWidth: 1,
+    borderColor: '#D6E4FF',
+  },
+  quickFilterChipText: {
+    color: '#1D4ED8',
+    fontSize: 12,
+    fontWeight: '700',
   },
   selectCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 4,
-    padding: 10,
+    borderRadius: 18,
+    padding: 12,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#EAF2FF',
   },
   selectBtn: {
-    backgroundColor: '#FECACA',
-    borderRadius: 4,
+    backgroundColor: '#D6E4FF',
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   selectBtnText: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 13,
     fontWeight: '700',
   },
   selectMenu: {
     borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 4,
+    borderColor: '#D6E4FF',
+    borderRadius: 12,
     overflow: 'hidden',
   },
   selectOption: {
@@ -473,10 +569,10 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#FECACA',
+    borderBottomColor: '#D6E4FF',
   },
   selectOptionText: {
-    color: '#991B1B',
+    color: '#1D4ED8',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -485,14 +581,14 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#FCA5A5',
+    borderColor: '#93C5FD',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
   },
   checkboxChecked: {
-    backgroundColor: '#DC2626',
-    borderColor: '#DC2626',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   checkboxText: {
     color: '#FFFFFF',
@@ -506,19 +602,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   navBtn: {
-    backgroundColor: '#FECACA',
-    borderRadius: 4,
+    backgroundColor: '#D6E4FF',
+    borderRadius: 10,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
   navBtnText: {
-    color: '#991B1B',
+    color: '#1D4ED8',
     fontSize: 12,
     fontWeight: '700',
   },
   todayBtn: {
-    backgroundColor: '#DC2626',
-    borderRadius: 4,
+    backgroundColor: '#2563EB',
+    borderRadius: 10,
     paddingVertical: 6,
     paddingHorizontal: 14,
   },
@@ -532,19 +628,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   dayPill: {
-    borderRadius: 4,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: '#D6E4FF',
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: '#F8FAFC',
   },
   dayPillActive: {
-    backgroundColor: '#DC2626',
-    borderColor: '#DC2626',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   dayText: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -553,17 +649,42 @@ const styles = StyleSheet.create({
   },
   leagueCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 4,
-    padding: 12,
+    borderRadius: 18,
+    padding: 14,
     gap: 10,
+    borderWidth: 1,
+    borderColor: '#EAF2FF',
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   leagueTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#7F1D1D',
+    color: '#1E3A8A',
+  },
+  leagueHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  leagueCountBadge: {
+    minWidth: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: '#EAF2FF',
+    alignItems: 'center',
+  },
+  leagueCountText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '800',
   },
   emptyText: {
-    color: '#B91C1C',
+    color: '#64748B',
     fontSize: 13,
   },
   matchRow: {
@@ -571,20 +692,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 4,
-    padding: 10,
+    borderColor: '#D6E4FF',
+    borderRadius: 12,
+    padding: 12,
   },
   favoriteCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 4,
-    padding: 10,
+    borderRadius: 18,
+    padding: 12,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#EAF2FF',
   },
   favoriteTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#7F1D1D',
+    color: '#1E3A8A',
   },
   favoriteRow: {
     gap: 8,
@@ -595,8 +718,8 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 4,
+    backgroundColor: '#EAF2FF',
+    borderRadius: 999,
   },
   favoriteLogo: {
     width: 16,
@@ -604,13 +727,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   favoriteChipText: {
-    color: '#991B1B',
+    color: '#1D4ED8',
     fontSize: 12,
     fontWeight: '700',
   },
   badge: {
     minWidth: 62,
-    borderRadius: 4,
+    borderRadius: 999,
     paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
@@ -628,9 +751,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  teamLogo: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#EAF2FF',
+  },
   team: {
     fontSize: 14,
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontWeight: '700',
     textDecorationLine: 'underline',
   },
@@ -646,7 +775,7 @@ const styles = StyleSheet.create({
   },
   kickoff: {
     fontSize: 12,
-    color: '#B91C1C',
+    color: '#64748B',
     marginTop: 2,
   },
   scoreCol: {
@@ -657,7 +786,7 @@ const styles = StyleSheet.create({
   score: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     lineHeight: 22,
   },
 });

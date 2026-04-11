@@ -41,7 +41,7 @@ export default function TeamPlayersScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#DC2626" />
+        <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
   }
@@ -81,11 +81,11 @@ export default function TeamPlayersScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#F5F8FF',
   },
   content: {
-    padding: 12,
-    gap: 10,
+    padding: 16,
+    gap: 12,
   },
   centered: {
     flex: 1,
@@ -93,9 +93,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerCard: {
-    backgroundColor: '#7F1D1D',
-    borderRadius: 4,
-    padding: 12,
+    backgroundColor: '#1E3A8A',
+    borderRadius: 22,
+    padding: 16,
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -103,12 +108,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   headerSub: {
-    color: '#FECACA',
+    color: '#D6E4FF',
     fontSize: 12,
     marginTop: 4,
   },
   empty: {
-    color: '#9F1239',
+    color: '#475569',
     fontSize: 13,
   },
   playerRow: {
@@ -116,27 +121,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     backgroundColor: '#FFFFFF',
-    borderRadius: 4,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#FECACA',
-    padding: 10,
+    borderColor: '#D6E4FF',
+    padding: 12,
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   avatar: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#FECACA',
+    backgroundColor: '#D6E4FF',
   },
   playerInfo: {
     flex: 1,
   },
   playerName: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 14,
     fontWeight: '700',
   },
   meta: {
-    color: '#B91C1C',
+    color: '#64748B',
     fontSize: 12,
     marginTop: 2,
   },
@@ -149,6 +159,6 @@ const styles = StyleSheet.create({
     color: '#166534',
   },
   injuryBad: {
-    color: '#B91C1C',
+    color: '#64748B',
   },
 });

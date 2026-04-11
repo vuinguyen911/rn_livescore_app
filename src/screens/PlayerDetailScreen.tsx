@@ -59,7 +59,7 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#DC2626" />
+        <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
   }
@@ -99,11 +99,11 @@ export default function PlayerDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#F5F8FF',
   },
   content: {
-    padding: 12,
-    gap: 12,
+    padding: 16,
+    gap: 14,
   },
   centered: {
     flex: 1,
@@ -111,18 +111,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   header: {
-    backgroundColor: '#7F1D1D',
-    borderRadius: 4,
-    padding: 12,
+    backgroundColor: '#1E3A8A',
+    borderRadius: 22,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
   },
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#991B1B',
+    backgroundColor: '#1D4ED8',
   },
   headerText: {
     flex: 1,
@@ -133,23 +138,30 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   meta: {
-    color: '#FECACA',
+    color: '#D6E4FF',
     fontSize: 13,
     marginTop: 2,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 4,
-    padding: 12,
+    borderRadius: 16,
+    padding: 14,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#EAF2FF',
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   errorText: {
-    color: '#B91C1C',
+    color: '#64748B',
     fontSize: 13,
     textAlign: 'center',
   },
   sectionTitle: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 14,
     fontWeight: '800',
   },
@@ -158,16 +170,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#FECACA',
+    borderBottomColor: '#D6E4FF',
     paddingVertical: 6,
   },
   infoLabel: {
-    color: '#9F1239',
+    color: '#475569',
     fontSize: 12,
     fontWeight: '600',
   },
   infoValue: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontSize: 12,
     fontWeight: '700',
     flexShrink: 1,

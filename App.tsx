@@ -2,18 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from './src/screens/HomeScreen';
 import MatchDetailScreen from './src/screens/MatchDetailScreen';
 import TeamScheduleScreen from './src/screens/TeamScheduleScreen';
 import PlayerDetailScreen from './src/screens/PlayerDetailScreen';
 import TeamPlayersScreen from './src/screens/TeamPlayersScreen';
+import LeaguesScreen from './src/screens/LeaguesScreen';
+import FavoritesScreen from './src/screens/FavoritesScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import { I18nProvider, useI18n } from './src/i18n';
 import * as Notifications from 'expo-notifications';
 import { configureNotifications } from './src/services/notifications';
 import AppErrorBoundary from './src/components/AppErrorBoundary';
+import { colors, radius, shadows, spacing } from './src/theme/tokens';
+
+export type MainTabParamList = {
+  HomeTab: undefined;
+  LeaguesTab: undefined;
+  FavoritesTab: undefined;
+  ProfileTab: undefined;
+};
 
 export type RootStackParamList = {
-  Home: undefined;
+  MainTabs: undefined;
   MatchDetail: {
     eventId: string;
     league: string;
@@ -41,16 +53,17 @@ export type RootStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const appTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#FFF5F5',
-    card: '#FFFFFF',
-    text: '#7F1D1D',
-    primary: '#DC2626',
-    border: '#D1D5DB',
+    background: colors.bg,
+    card: colors.surface,
+    text: colors.text,
+    primary: colors.primary,
+    border: colors.surfaceBorder,
   },
 };
 
@@ -66,11 +79,7 @@ const LanguageSwitch = () => {
 
   return (
     <View style={styles.langWrap}>
-      <Pressable
-        style={styles.langBtn}
-        onPress={() => setOpen((prev) => !prev)}
-        accessibilityLabel={t.common.languageToggle}
-      >
+      <Pressable style={styles.langBtn} onPress={() => setOpen((prev) => !prev)} accessibilityLabel={t.common.languageToggle}>
         <Text style={styles.langText}>{active.label}</Text>
       </Pressable>
       {open ? (
@@ -84,9 +93,7 @@ const LanguageSwitch = () => {
                 setOpen(false);
               }}
             >
-              <Text style={[styles.langMenuText, locale === item.value && styles.langMenuTextActive]}>
-                {item.label}
-              </Text>
+              <Text style={[styles.langMenuText, locale === item.value && styles.langMenuTextActive]}>{item.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -119,8 +126,60 @@ const TimeZoneSwitch = () => {
   );
 };
 
+const tabIcon = (routeName: keyof MainTabParamList): string => {
+  if (routeName === 'HomeTab') return '◉';
+  if (routeName === 'LeaguesTab') return '◎';
+  if (routeName === 'FavoritesTab') return '★';
+  return '◌';
+};
+
+const MainTabsNavigator = () => {
+  const { t } = useI18n();
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerStyle: { backgroundColor: colors.bg },
+        headerShadowVisible: false,
+        headerTitleStyle: { color: colors.text, fontWeight: '800' },
+        headerTintColor: colors.text,
+        headerRight: () => <LanguageSwitch />,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.surfaceBorder,
+          height: 68,
+          paddingTop: 8,
+          paddingBottom: 8,
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSoft,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 13, fontWeight: '800' }}>{tabIcon(route.name)}</Text>,
+      })}
+    >
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeScreen}
+        options={{
+          title: t.app.homeTitle,
+          tabBarLabel: 'Home',
+          headerLeft: () => <TimeZoneSwitch />,
+        }}
+      />
+      <Tab.Screen name="LeaguesTab" component={LeaguesScreen} options={{ title: 'Leagues', tabBarLabel: 'Leagues' }} />
+      <Tab.Screen
+        name="FavoritesTab"
+        component={FavoritesScreen}
+        options={{ title: t.home.myFavorites, tabBarLabel: 'Favorites' }}
+      />
+      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ title: 'Profile', tabBarLabel: 'Profile' }} />
+    </Tab.Navigator>
+  );
+};
+
 const AppNavigator = () => {
   const { t } = useI18n();
+
   useEffect(() => {
     try {
       Notifications.setNotificationHandler({
@@ -139,26 +198,18 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer theme={appTheme}>
-      <StatusBar barStyle="light-content" backgroundColor="#7F1D1D" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.bg} />
       <Stack.Navigator>
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: t.app.homeTitle,
-            headerStyle: { backgroundColor: '#7F1D1D' },
-            headerTintColor: '#FFFFFF',
-            headerLeft: () => <TimeZoneSwitch />,
-            headerRight: () => <LanguageSwitch />,
-          }}
-        />
+        <Stack.Screen name="MainTabs" component={MainTabsNavigator} options={{ headerShown: false }} />
         <Stack.Screen
           name="MatchDetail"
           component={MatchDetailScreen}
           options={{
             title: t.app.matchDetailTitle,
-            headerStyle: { backgroundColor: '#7F1D1D' },
-            headerTintColor: '#FFFFFF',
+            headerStyle: { backgroundColor: colors.bg },
+            headerShadowVisible: false,
+            headerTitleStyle: { color: colors.text, fontWeight: '800' },
+            headerTintColor: colors.text,
             headerRight: () => <LanguageSwitch />,
           }}
         />
@@ -167,8 +218,10 @@ const AppNavigator = () => {
           component={TeamScheduleScreen}
           options={{
             title: t.team.scheduleTitle,
-            headerStyle: { backgroundColor: '#7F1D1D' },
-            headerTintColor: '#FFFFFF',
+            headerStyle: { backgroundColor: colors.bg },
+            headerShadowVisible: false,
+            headerTitleStyle: { color: colors.text, fontWeight: '800' },
+            headerTintColor: colors.text,
             headerRight: () => <LanguageSwitch />,
           }}
         />
@@ -177,8 +230,10 @@ const AppNavigator = () => {
           component={TeamPlayersScreen}
           options={{
             title: t.team.playersTitle,
-            headerStyle: { backgroundColor: '#7F1D1D' },
-            headerTintColor: '#FFFFFF',
+            headerStyle: { backgroundColor: colors.bg },
+            headerShadowVisible: false,
+            headerTitleStyle: { color: colors.text, fontWeight: '800' },
+            headerTintColor: colors.text,
             headerRight: () => <LanguageSwitch />,
           }}
         />
@@ -187,8 +242,10 @@ const AppNavigator = () => {
           component={PlayerDetailScreen}
           options={{
             title: t.player.title,
-            headerStyle: { backgroundColor: '#7F1D1D' },
-            headerTintColor: '#FFFFFF',
+            headerStyle: { backgroundColor: colors.bg },
+            headerShadowVisible: false,
+            headerTitleStyle: { color: colors.text, fontWeight: '800' },
+            headerTintColor: colors.text,
             headerRight: () => <LanguageSwitch />,
           }}
         />
@@ -213,62 +270,69 @@ const styles = StyleSheet.create({
   },
   langMenu: {
     position: 'absolute',
-    top: 36,
+    top: 44,
     right: 0,
-    backgroundColor: '#7F1D1D',
-    borderRadius: 8,
-    paddingVertical: 4,
-    minWidth: 132,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    paddingVertical: spacing.xs,
+    minWidth: 152,
     borderWidth: 1,
-    borderColor: '#7F1D1D',
+    borderColor: colors.surfaceBorder,
+    ...shadows.md,
   },
   langMenuItem: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginHorizontal: spacing.xs,
+    borderRadius: radius.sm,
   },
   langMenuItemActive: {
-    backgroundColor: '#991B1B',
+    backgroundColor: colors.primaryMid,
   },
   langMenuText: {
-    color: '#FECACA',
-    fontSize: 12,
+    color: colors.primaryMid,
+    fontSize: 13,
     fontWeight: '700',
   },
   langMenuTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   langBtn: {
-    backgroundColor: '#991B1B',
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: '#93C5FD',
   },
   langText: {
-    color: '#FFFFFF',
-    fontSize: 11,
+    color: colors.text,
+    fontSize: 12,
     fontWeight: '700',
   },
   tzWrap: {
     flexDirection: 'row',
-    backgroundColor: '#991B1B',
-    borderRadius: 4,
-    padding: 2,
-    marginRight: 8,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#93C5FD',
+    marginRight: spacing.sm,
   },
   tzBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 9,
   },
   tzBtnActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.primary,
   },
   tzText: {
-    color: '#FECACA',
-    fontSize: 11,
+    color: colors.textSoft,
+    fontSize: 12,
     fontWeight: '700',
   },
   tzTextActive: {
-    color: '#7F1D1D',
+    color: colors.white,
   },
 });

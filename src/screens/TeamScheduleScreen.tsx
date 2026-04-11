@@ -40,14 +40,17 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#DC2626" />
+        <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>{t.team.upcomingMatches}</Text>
+      <View style={styles.headerCard}>
+        <Text style={styles.title}>{t.team.upcomingMatches}</Text>
+        <Text style={styles.subtitle}>#{fixtures.length}</Text>
+      </View>
       {error ? <Text style={styles.empty}>{error}</Text> : null}
       {fixtures.length === 0 ? (
         <Text style={styles.empty}>{t.team.noUpcoming}</Text>
@@ -71,11 +74,11 @@ export default function TeamScheduleScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#F5F8FF',
   },
   content: {
-    padding: 12,
-    gap: 10,
+    padding: 16,
+    gap: 12,
   },
   centered: {
     flex: 1,
@@ -85,31 +88,52 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#7F1D1D',
+    color: '#FFFFFF',
+  },
+  subtitle: {
+    color: '#D6E4FF',
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  headerCard: {
+    backgroundColor: '#1E3A8A',
+    borderRadius: 22,
+    padding: 16,
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
   },
   empty: {
-    color: '#9F1239',
+    color: '#475569',
     fontSize: 13,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 4,
-    padding: 12,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: '#D6E4FF',
     gap: 4,
+    shadowColor: '#1E3A8A',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   match: {
-    color: '#7F1D1D',
+    color: '#1E3A8A',
     fontWeight: '700',
     fontSize: 14,
   },
   meta: {
-    color: '#B91C1C',
+    color: '#64748B',
     fontSize: 12,
   },
   score: {
-    color: '#DC2626',
+    color: '#2563EB',
     fontWeight: '800',
     fontSize: 18,
   },
